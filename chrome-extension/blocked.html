@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#111;color:white;text-align:center;margin-top:100px;">
+<h1 style="color:red;">⚠️ BLOCKED</h1>
+<p id="url"></p>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+document.getElementById("url").innerText = params.get("url");
+</script>
+
+</body>
+</html>
