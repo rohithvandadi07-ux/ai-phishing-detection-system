@@ -1,10 +1,9 @@
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
-    if (details.frameId !== 0) return; // main tab only
+    if (details.frameId !== 0) return;
 
     const url = details.url;
 
-    // skip chrome pages
-    if (url.startsWith("chrome://") || url.startsWith("edge://")) return;
+    if (!url.startsWith("http")) return;
 
     try {
         const response = await fetch(

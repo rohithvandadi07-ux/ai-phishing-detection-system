@@ -1,13 +1,74 @@
 <!DOCTYPE html>
 <html>
-<body style="background:#111;color:white;text-align:center;margin-top:100px;">
-<h1 style="color:red;">⚠️ BLOCKED</h1>
-<p id="url"></p>
 
-<script>
-const params = new URLSearchParams(window.location.search);
-document.getElementById("url").innerText = params.get("url");
-</script>
+<head>
+  <meta charset="UTF-8">
+  <title>Blocked - Phishing Detected</title>
+
+  <style>
+body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: #1e293b;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 500px;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+    }
+
+    h1 {
+      color: red;
+      margin-bottom: 10px;
+    }
+
+    .url {
+      margin: 10px 0;
+      color: #f87171;
+      word-break: break-all;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: red;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background: #dc2626;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>⚠️ Phishing Website Blocked</h1>
+
+    <p>This site has been identified as potentially malicious.</p>
+
+    <p class="url" id="url"></p>
+
+    <button id="backBtn">Go Back</button>
+  </div>
+
+  <!-- EXTERNAL JS ONLY -->
+  <script src="blocked.js"></script>
 
 </body>
+
 </html>
