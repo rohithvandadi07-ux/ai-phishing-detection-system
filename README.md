@@ -1,120 +1,238 @@
-# 🚀 Real-Time Phishing Detection System
+# 🛡️ AI-Powered Real-Time Phishing Detection System
 
-A machine learning-powered phishing detection system with a Chrome extension that **automatically detects and blocks malicious URLs in real-time**.
+A real-time phishing detection and website blocking system built using **Machine Learning, FastAPI, Streamlit, and a Chrome Extension**.
 
----
-
-## 🔥 Features
-
-* 🧠 ML-based phishing detection (LightGBM)
-* ⚡ FastAPI backend for real-time predictions
-* 🌐 Chrome Extension for live URL monitoring
-* 🚫 Automatic phishing website blocking
-* 📊 Confidence score + explanation
-* 🖥️ Streamlit UI for manual testing
+This project automatically analyzes URLs, detects phishing behavior, and blocks malicious websites directly inside the browser.
 
 ---
 
-## 🧱 Tech Stack
+# 🚀 Features
 
-* Python
-* FastAPI
-* LightGBM
-* Scikit-learn
-* Streamlit
-* JavaScript (Chrome Extension)
+- 🧠 Machine Learning-based phishing detection using LightGBM
+- ⚡ FastAPI backend for real-time inference
+- 🌐 Chrome Extension for live URL monitoring
+- 🚫 Automatic phishing website blocking
+- 📊 Confidence score with phishing explanation
+- 🖥️ Streamlit dashboard for manual URL testing
+- 🔒 Safe-domain whitelist support
+- 🧩 Modular project structure for future upgrades
 
 ---
 
-## 🧠 System Architecture
+# 🧱 Tech Stack
 
+| Technology | Purpose |
+|---|---|
+| Python | Core backend |
+| FastAPI | Real-time prediction API |
+| LightGBM | ML phishing classifier |
+| Scikit-learn | Feature scaling & preprocessing |
+| Streamlit | Frontend testing dashboard |
+| JavaScript | Chrome extension logic |
+| HTML/CSS | Extension UI & blocker page |
+
+---
+
+# 🧠 System Architecture
+
+```text
+Browser
+   ↓
+Chrome Extension
+   ↓
+FastAPI Backend
+   ↓
+Feature Extraction
+   ↓
+LightGBM Model
+   ↓
+Prediction Response
+   ↓
+Popup Warning / Auto Block
 ```
-Browser → Chrome Extension → FastAPI → ML Model → Response → Block Page
+
+---
+
+# 📂 Project Structure
+
+```text
+ai-phishing-detection-system/
+│
+├── chrome-extension/
+│   ├── manifest.json
+│   ├── popup.html
+│   ├── popup.js
+│   ├── content.js
+│   ├── blocked.html
+│   └── blocked.js
+│
+├── models/
+│   ├── lgb_model_small.pkl
+│   └── scaler.pkl
+│
+├── utils/
+│   ├── features.py
+│   └── explain.py
+│
+├── assets/
+│   ├── popup.png
+│   ├── blocker.png
+│   └── dashboard.png
+│
+├── app.py
+├── frontend.py
+├── requirements.txt
+├── README.md
+└── .gitignore
 ```
 
 ---
 
-## 📸 Demo
+# 📸 Screenshots
 
-### 🔹 Safe URL
+## 🔹 Chrome Extension Popup
 
-* Shows "Safe URL"
-* Confidence score = 1.0
-
-### 🔹 Malicious URL
-
-* Detects phishing patterns
-* Blocks page automatically
-* Displays warning screen
+![Popup](assets/popup.png)
 
 ---
 
-## ⚙️ Setup Instructions
+## 🔹 Automatic Phishing Blocker
 
-### 1. Clone the repository
+![Blocker](assets/blocker.png)
 
-```
-git clone https://github.com/your-username/ai-phishing-detection-system.git
+---
+
+## 🔹 Streamlit Dashboard
+
+![Dashboard](assets/dashboard.png)
+
+---
+
+# ⚙️ Installation & Setup
+
+## 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/rohithvandadi07-ux/ai-phishing-detection-system.git
 cd ai-phishing-detection-system
 ```
 
 ---
 
-### 2. Install dependencies
+## 2️⃣ Install Dependencies
 
-```
+```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-### 3. Run FastAPI server
+## 3️⃣ Run FastAPI Backend
 
-```
+```bash
 python3 -m uvicorn app:app --reload
 ```
 
+FastAPI will start on:
+
+```text
+http://127.0.0.1:8000
+```
+
 ---
 
-### 4. Run Streamlit (optional)
+## 4️⃣ Run Streamlit Dashboard (Optional)
 
-```
+```bash
 streamlit run frontend.py
 ```
 
----
+Streamlit dashboard:
 
-### 5. Load Chrome Extension
-
-* Go to `chrome://extensions`
-* Enable **Developer Mode**
-* Click **Load unpacked**
-* Select `chrome-extension/` folder
+```text
+http://localhost:8501
+```
 
 ---
 
-## ⚠️ Current Limitations
+## 5️⃣ Load Chrome Extension
 
-* Uses basic feature-based model (25 features)
-* Works with local API (127.0.0.1)
-* No caching yet
+1. Open Chrome
+2. Go to:
 
----
+```text
+chrome://extensions
+```
 
-## 🚀 Future Improvements
-
-* 🔥 Deploy API (global usage)
-* 🧠 Add DistilBERT / Deep Learning model
-* ⚡ Add caching for faster detection
-* 🛡️ Advanced phishing detection (WHOIS, SSL)
-* 🌍 Publish Chrome Extension
+3. Enable **Developer Mode**
+4. Click **Load unpacked**
+5. Select the `chrome-extension/` folder
 
 ---
 
-## 👨‍💻 Author
+# 🧪 Example URLs for Testing
 
-Rohith V
+## ✅ Safe URLs
+
+```text
+https://google.com
+https://github.com
+https://microsoft.com
+```
 
 ---
 
-## ⭐ If you like this project, give it a star!
+## ⚠️ Suspicious URLs
+
+```text
+http://paypal-login-secure.xyz
+http://verify-amazon-login.free
+http://google.security-check-login.com
+```
+
+---
+
+# ⚠️ Current Limitations
+
+- Uses feature-based ML detection only
+- Runs on local FastAPI server
+- No cloud deployment yet
+- No WHOIS or SSL verification currently
+- No caching layer implemented
+
+---
+
+# 🚀 Future Roadmap
+
+## Phase 2
+- 🔥 Background automatic tab scanning
+- ⚡ Real-time monitoring like antivirus
+
+## Phase 3
+- 🌐 VirusTotal API integration
+- 🛡️ PhishTank integration
+
+## Phase 4
+- 🔒 SSL certificate analysis
+- 🌍 WHOIS/domain-age analysis
+- 🎯 Typosquatting detection
+
+## Phase 5
+- 🧠 DistilBERT-based URL analysis
+- 🤖 Hybrid Deep Learning model
+
+## Phase 6
+- ☁️ Deploy FastAPI backend publicly
+- 🌍 Publish Chrome Extension
+
+---
+
+# 👨‍💻 Author
+
+## Rohith V
+
+---
+
+# ⭐ Support
+
+If you found this project useful, consider giving it a ⭐ on GitHub.
