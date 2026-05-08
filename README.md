@@ -1,35 +1,64 @@
 # 🛡️ AI-Powered Real-Time Phishing Detection System
 
-A real-time phishing detection and website blocking system built using **Machine Learning, FastAPI, Streamlit, and a Chrome Extension**.
+A real-time phishing detection and automatic website blocking system built using **Machine Learning, FastAPI, Streamlit, and a Chrome Extension**.
 
-This project automatically analyzes URLs, detects phishing behavior, and blocks malicious websites directly inside the browser.
+This project analyzes URLs in real-time, detects phishing behavior, calculates threat levels, and automatically blocks malicious websites directly inside the browser.
 
 ---
 
 # 🚀 Features
 
-- 🧠 Machine Learning-based phishing detection using LightGBM
-- ⚡ FastAPI backend for real-time inference
-- 🌐 Chrome Extension for live URL monitoring
-- 🚫 Automatic phishing website blocking
-- 📊 Confidence score with phishing explanation
-- 🖥️ Streamlit dashboard for manual URL testing
-- 🔒 Safe-domain whitelist support
-- 🧩 Modular project structure for future upgrades
+* 🧠 Machine Learning-based phishing detection using LightGBM
+* ⚡ FastAPI backend for real-time inference
+* 🌐 Chrome Extension for live URL monitoring
+* 🚫 Automatic phishing website blocking
+* 📊 Confidence score with phishing explanation
+* 🖥️ Streamlit dashboard for manual URL testing
+* 🔒 Safe-domain whitelist support
+* 🧩 Modular architecture for future AI upgrades
+* 🛡️ Typosquatting detection
+* 🎯 Brand impersonation detection
+* 🌍 Suspicious TLD detection
+* ⚠️ Real-time phishing warning system
+
+---
+
+# 🛡️ AI Threat Intelligence
+
+The extension now includes advanced phishing intelligence techniques similar to real-world browser security systems.
+
+## ✅ Detection Capabilities
+
+* Detects fake brand impersonation
+* Detects suspicious phishing domains
+* Detects typo-based attacks
+* Detects dangerous phishing TLDs
+* Blocks malicious pages automatically
+
+---
+
+## 🔥 Example Detections
+
+```text
+http://paypal-login-secure.xyz
+http://gooogle-login.xyz
+http://paypa1-secure-login.top
+http://micr0soft-authentication.xyz
+```
 
 ---
 
 # 🧱 Tech Stack
 
-| Technology | Purpose |
-|---|---|
-| Python | Core backend |
-| FastAPI | Real-time prediction API |
-| LightGBM | ML phishing classifier |
+| Technology   | Purpose                         |
+| ------------ | ------------------------------- |
+| Python       | Core backend                    |
+| FastAPI      | Real-time prediction API        |
+| LightGBM     | ML phishing classifier          |
 | Scikit-learn | Feature scaling & preprocessing |
-| Streamlit | Frontend testing dashboard |
-| JavaScript | Chrome extension logic |
-| HTML/CSS | Extension UI & blocker page |
+| Streamlit    | Frontend testing dashboard      |
+| JavaScript   | Chrome extension logic          |
+| HTML/CSS     | Extension UI & blocker page     |
 
 ---
 
@@ -43,6 +72,8 @@ Chrome Extension
 FastAPI Backend
    ↓
 Feature Extraction
+   ↓
+Threat Intelligence Engine
    ↓
 LightGBM Model
    ↓
@@ -178,6 +209,7 @@ chrome://extensions
 https://google.com
 https://github.com
 https://microsoft.com
+https://amazon.com
 ```
 
 ---
@@ -188,42 +220,123 @@ https://microsoft.com
 http://paypal-login-secure.xyz
 http://verify-amazon-login.free
 http://google.security-check-login.com
+http://gooogle-login.xyz
+http://paypa1-secure-login.top
+http://micr0soft-authentication.xyz
 ```
 
 ---
 
 # ⚠️ Current Limitations
 
-- Uses feature-based ML detection only
-- Runs on local FastAPI server
-- No cloud deployment yet
-- No WHOIS or SSL verification currently
-- No caching layer implemented
+* Uses feature-based ML detection currently
+* Runs on local FastAPI backend
+* No cloud deployment yet
+* WHOIS analysis not added yet
+* SSL verification not added yet
+* No threat intelligence feeds yet
+* No caching layer implemented
 
 ---
 
 # 🚀 Future Roadmap
 
-## Phase 2
-- 🔥 Background automatic tab scanning
-- ⚡ Real-time monitoring like antivirus
+## ✅ Phase 1 — Core Detection System
 
-## Phase 3
-- 🌐 VirusTotal API integration
-- 🛡️ PhishTank integration
+* ML phishing detection
+* FastAPI backend
+* Streamlit dashboard
+* Chrome extension popup
 
-## Phase 4
-- 🔒 SSL certificate analysis
-- 🌍 WHOIS/domain-age analysis
-- 🎯 Typosquatting detection
+---
 
-## Phase 5
-- 🧠 DistilBERT-based URL analysis
-- 🤖 Hybrid Deep Learning model
+## ✅ Phase 2 — Automatic Blocking Engine
 
-## Phase 6
-- ☁️ Deploy FastAPI backend publicly
-- 🌍 Publish Chrome Extension
+* Real-time website monitoring
+* Automatic phishing page blocking
+* Custom phishing warning screen
+
+---
+
+## ✅ Phase 3 — AI Threat Intelligence
+
+* Brand impersonation detection
+* Typosquatting detection
+* Suspicious TLD analysis
+
+---
+
+## 🔜 Phase 4 — Advanced Risk Engine
+
+* Threat score calculation
+* Risk severity levels
+* Intelligent blocking rules
+
+---
+
+## 🔜 Phase 5 — External Threat Intelligence
+
+* VirusTotal API integration
+* PhishTank integration
+* URL reputation analysis
+
+---
+
+## 🔜 Phase 6 — Domain Intelligence
+
+* SSL certificate analysis
+* WHOIS/domain-age analysis
+* Registrar intelligence
+
+---
+
+## 🔜 Phase 7 — Deep Learning Upgrade
+
+* DistilBERT URL analysis
+* Hybrid ML + DL model
+* Zero-day phishing detection
+
+---
+
+## 🔜 Phase 8 — Performance Optimization
+
+* Caching system
+* Faster inference
+* Async scanning engine
+
+---
+
+## 🔜 Phase 9 — Cloud Deployment
+
+* Deploy FastAPI publicly
+* Remote inference server
+* Global accessibility
+
+---
+
+## 🔜 Phase 10 — Browser Extension Release
+
+* Chrome Web Store deployment
+* Auto updates
+* Extension packaging
+
+---
+
+## 🔜 Phase 11 — Enterprise Security Dashboard
+
+* Threat analytics
+* Detection logs
+* Security reports
+* Admin monitoring panel
+
+---
+
+## 🔜 Phase 12 — Startup-Grade Security Platform
+
+* Multi-browser support
+* Real-time telemetry
+* AI behavioral detection
+* Enterprise SaaS platform
 
 ---
 
