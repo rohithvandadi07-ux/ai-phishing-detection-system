@@ -4,22 +4,28 @@ from urllib.parse import urlparse
 
 from utils.features import extract_features
 from utils.explain import explain_url
-from utils.threat_intel import check_virustotal
+from utils.reputation import analyze_url_reputation
+
+from utils.threat_intel import (
+    check_virustotal,
+    check_phishtank
+)
 
 app = FastAPI()
 
-# -----------------------------
+# ---------------------------------------------------
 # LOAD MODEL
-# -----------------------------
+# ---------------------------------------------------
 
 lgb_model = pickle.load(open("models/lgb_model_small.pkl", "rb"))
 scaler = pickle.load(open("models/scaler.pkl", "rb"))
 
-# -----------------------------
+# ---------------------------------------------------
 # TRUSTED SAFE DOMAINS
-# -----------------------------
+# ---------------------------------------------------
 
 SAFE_DOMAINS = {
+
     "google.com",
     "github.com",
     "amazon.com",
@@ -28,12 +34,12 @@ SAFE_DOMAINS = {
     "apple.com",
     "linkedin.com",
     "stackoverflow.com"
+
 }
 
-
-# -----------------------------
+# ---------------------------------------------------
 # HOME ROUTE
-# -----------------------------
+# ---------------------------------------------------
 
 @app.get("/")
 def home():
@@ -42,19 +48,18 @@ def home():
         "message": "AI Phishing Detection API Running"
     }
 
-
-# -----------------------------
+# ---------------------------------------------------
 # MAIN PREDICTION ROUTE
-# -----------------------------
+# ---------------------------------------------------
 
 @app.post("/predict")
 def predict(url: str):
 
     try:
 
-        # -----------------------------
+        # ---------------------------------------------------
         # DOMAIN PARSING
-        # -----------------------------
+        # ---------------------------------------------------
 
         parsed = urlparse(url)
         hostname = parsed.netloc.lower()
@@ -62,9 +67,9 @@ def predict(url: str):
         if hostname.startswith("www."):
             hostname = hostname[4:]
 
-        # -----------------------------
-        # SAFE DOMAIN OVERRIDE
-        # -----------------------------
+        # ---------------------------------------------------
+        # SAFE DOMAIN WHITELIST
+        # ---------------------------------------------------
 
         if hostname in SAFE_DOMAINS:
 
@@ -77,31 +82,35 @@ def predict(url: str):
                 "reasons": [
                     "Trusted domain whitelist"
                 ]
+
             }
 
-        # -----------------------------
+        # ---------------------------------------------------
         # FEATURE EXTRACTION
-        # -----------------------------
+        # ---------------------------------------------------
 
         feat = extract_features(url)
         feat_scaled = scaler.transform([feat])
 
-        # -----------------------------
+        # ---------------------------------------------------
         # ML PREDICTION
-        # -----------------------------
+        # ---------------------------------------------------
 
         pred = lgb_model.predict(feat_scaled)[0]
-        prob = float(lgb_model.predict_proba(feat_scaled)[0][1])
 
-        # -----------------------------
-        # AI EXPLANATIONS
-        # -----------------------------
+        prob = float(
+            lgb_model.predict_proba(feat_scaled)[0][1]
+        )
 
-        reasons = explain_url(url)
+        # ---------------------------------------------------
+        # INITIAL EXPLANATIONS
+        # ---------------------------------------------------
 
-        # -----------------------------
-        # VIRUSTOTAL THREAT INTEL
-        # -----------------------------
+        reasons = list(set(explain_url(url)))
+
+        # ---------------------------------------------------
+        # VIRUSTOTAL CHECK
+        # ---------------------------------------------------
 
         vt_result = check_virustotal(url)
 
@@ -111,25 +120,57 @@ def predict(url: str):
                 f"Flagged by VirusTotal ({vt_result['detections']} detections)"
             )
 
-        # -----------------------------
-        # RISK SCORING ENGINE
-        # -----------------------------
+        # ---------------------------------------------------
+        # PHISHTANK / OPENPHISH CHECK
+        # ---------------------------------------------------
+
+        pt_result = check_phishtank(url)
+
+        if pt_result["malicious"]:
+
+            reasons.append(
+                "Flagged by PhishTank database"
+            )
+
+        # ---------------------------------------------------
+        # URL REPUTATION ENGINE
+        # ---------------------------------------------------
+
+        reputation_result = analyze_url_reputation(url)
+
+        reasons.extend(
+            reputation_result["indicators"]
+        )
+
+        # Remove duplicates
+        reasons = list(set(reasons))
+
+        # ---------------------------------------------------
+        # RISK SCORE ENGINE
+        # ---------------------------------------------------
 
         risk_score = 0
 
-        # ML confidence contribution
-        risk_score += int(prob * 60)
+        # ML contribution
+        risk_score += int(prob * 45)
 
-        # Explanation contribution
-        risk_score += len(reasons) * 10
+        # Explanations contribution
+        risk_score += len(reasons) * 6
+
+        # Reputation engine contribution
+        risk_score += reputation_result["score"]
 
         # VirusTotal contribution
         if vt_result["malicious"]:
-            risk_score += 30
+            risk_score += 25
 
-        # -----------------------------
-        # SUSPICIOUS KEYWORD ANALYSIS
-        # -----------------------------
+        # PhishTank contribution
+        if pt_result["malicious"]:
+            risk_score += 20
+
+        # ---------------------------------------------------
+        # EXTRA SUSPICIOUS KEYWORD ANALYSIS
+        # ---------------------------------------------------
 
         suspicious_keywords = [
 
@@ -151,78 +192,28 @@ def predict(url: str):
         for word in suspicious_keywords:
 
             if word in lower_url:
-                risk_score += 5
 
-        # -----------------------------
-        # BRAND IMPERSONATION CHECK
-        # -----------------------------
+                risk_score += 4
 
-        popular_brands = [
-
-            "google",
-            "paypal",
-            "amazon",
-            "microsoft",
-            "apple",
-            "facebook",
-            "instagram",
-            "linkedin",
-            "netflix"
-
-        ]
-
-        suspicious_tlds = [
-
-            ".xyz",
-            ".top",
-            ".tk",
-            ".gq",
-            ".ml",
-            ".cf"
-
-        ]
-
-        for brand in popular_brands:
-
-            if brand in lower_url and hostname not in SAFE_DOMAINS:
-
-                reasons.append(
-                    "Possible brand impersonation"
-                )
-
-                risk_score += 15
-                break
-
-        for tld in suspicious_tlds:
-
-            if lower_url.endswith(tld):
-
-                reasons.append(
-                    f"Suspicious TLD detected ({tld})"
-                )
-
-                risk_score += 10
-                break
-
-        # -----------------------------
+        # ---------------------------------------------------
         # URL LENGTH CHECK
-        # -----------------------------
+        # ---------------------------------------------------
 
         if len(url) > 75:
 
             reasons.append("Very long URL")
             risk_score += 10
 
-        # -----------------------------
-        # CLAMP SCORE
-        # -----------------------------
+        # ---------------------------------------------------
+        # SCORE CLAMP
+        # ---------------------------------------------------
 
         if risk_score > 100:
             risk_score = 100
 
-        # -----------------------------
+        # ---------------------------------------------------
         # RISK LEVELS
-        # -----------------------------
+        # ---------------------------------------------------
 
         if risk_score >= 80:
 
@@ -240,15 +231,15 @@ def predict(url: str):
 
             risk_level = "SAFE"
 
-        # -----------------------------
+        # ---------------------------------------------------
         # FINAL PREDICTION
-        # -----------------------------
+        # ---------------------------------------------------
 
         prediction = "malicious" if risk_level != "SAFE" else "safe"
 
-        # -----------------------------
-        # RESPONSE
-        # -----------------------------
+        # ---------------------------------------------------
+        # FINAL RESPONSE
+        # ---------------------------------------------------
 
         return {
 

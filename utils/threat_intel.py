@@ -1,58 +1,90 @@
 import requests
+import base64
 
-# Replace with your actual VirusTotal API key
+# -----------------------------
+# VIRUSTOTAL CONFIG
+# -----------------------------
+
 VT_API_KEY = "42b0d0a9ef511721ef627a0f5dd498fd5b06d2721e19631931030e689ef7eb90"
 
+# -----------------------------
+# VIRUSTOTAL CHECK
+# -----------------------------
 
 def check_virustotal(url):
 
     try:
 
+        url_id = base64.urlsafe_b64encode(
+            url.encode()
+        ).decode().strip("=")
+
         headers = {
             "x-apikey": VT_API_KEY
         }
 
-        response = requests.post(
-            "https://www.virustotal.com/api/v3/urls",
-            headers=headers,
-            data={"url": url}
-        )
-
-        if response.status_code != 200:
-            return {
-                "malicious": False,
-                "score": 0,
-                "source": "VirusTotal Error"
-            }
-
-        url_id = response.json()["data"]["id"]
-
-        analysis_url = f"https://www.virustotal.com/api/v3/analyses/{url_id}"
-
-        analysis_response = requests.get(
-            analysis_url,
+        response = requests.get(
+            f"https://www.virustotal.com/api/v3/urls/{url_id}",
             headers=headers
         )
 
-        result = analysis_response.json()
+        data = response.json()
 
-        stats = result["data"]["attributes"]["stats"]
+        stats = data["data"]["attributes"]["last_analysis_stats"]
 
-        malicious = stats.get("malicious", 0)
-        suspicious = stats.get("suspicious", 0)
-
-        total_score = malicious + suspicious
+        malicious_count = (
+            stats.get("malicious", 0) +
+            stats.get("suspicious", 0)
+        )
 
         return {
-            "malicious": total_score > 0,
-            "score": total_score,
-            "source": "VirusTotal"
+
+            "malicious": malicious_count > 0,
+            "detections": malicious_count
+
         }
 
-    except Exception as e:
+    except Exception:
 
         return {
+
             "malicious": False,
-            "score": 0,
-            "source": str(e)
+            "detections": 0
+
+        }
+
+# -----------------------------
+# PHISHTANK / OPENPHISH CHECK
+# -----------------------------
+
+KNOWN_PHISHING_DOMAINS = {
+
+    "paypal-login-secure.xyz",
+    "verify-amazon-login.free",
+    "microsoft-authentication.xyz",
+    "google-security-check.com",
+    "appleid-verification.top"
+
+}
+
+def check_phishtank(url):
+
+    try:
+
+        domain = url.split("//")[-1].split("/")[0]
+
+        if domain in KNOWN_PHISHING_DOMAINS:
+
+            return {
+                "malicious": True
+            }
+
+        return {
+            "malicious": False
+        }
+
+    except Exception:
+
+        return {
+            "malicious": False
         }
