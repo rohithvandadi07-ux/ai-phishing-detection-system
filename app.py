@@ -1,19 +1,17 @@
 from fastapi import FastAPI
 import pickle
+import asyncio
 from urllib.parse import urlparse
 
 from utils.features import extract_features
 from utils.explain import explain_url
-from utils.reputation import analyze_url_reputation
-from utils.domain_intel import analyze_domain_intelligence
 
-from utils.threat_intel import (
-    check_virustotal,
-    check_phishtank
+from utils.cache import (
+    get_cached_result,
+    store_result
 )
 
-# NEW
-from utils.distilbert_detector import bert_url_analysis
+from utils.async_scanner import async_scan
 
 app = FastAPI()
 
@@ -62,6 +60,15 @@ def predict(url: str):
     try:
 
         # ---------------------------------------------------
+        # CACHE CHECK
+        # ---------------------------------------------------
+
+        cached = get_cached_result(url)
+
+        if cached:
+            return cached
+
+        # ---------------------------------------------------
         # DOMAIN PARSING
         # ---------------------------------------------------
 
@@ -77,7 +84,7 @@ def predict(url: str):
 
         if hostname in SAFE_DOMAINS:
 
-            return {
+            result = {
 
                 "prediction": "safe",
                 "confidence": 1.0,
@@ -88,6 +95,10 @@ def predict(url: str):
                 ]
 
             }
+
+            store_result(url, result)
+
+            return result
 
         # ---------------------------------------------------
         # FEATURE EXTRACTION
@@ -113,10 +124,33 @@ def predict(url: str):
         reasons = list(set(explain_url(url)))
 
         # ---------------------------------------------------
-        # VIRUSTOTAL CHECK
+        # FAST RISK ESTIMATION
         # ---------------------------------------------------
 
-        vt_result = check_virustotal(url)
+        fast_risk = 0
+
+        if prob > 0.80:
+            fast_risk += 40
+
+        if len(reasons) >= 3:
+            fast_risk += 30
+
+        # ---------------------------------------------------
+        # ASYNC SCANNING ENGINE
+        # ---------------------------------------------------
+
+        scan_results = asyncio.run(
+            async_scan(
+                url,
+                run_bert_model=fast_risk >= 25
+            )
+        )
+
+        # ---------------------------------------------------
+        # VIRUSTOTAL
+        # ---------------------------------------------------
+
+        vt_result = scan_results["virustotal"]
 
         if vt_result["malicious"]:
 
@@ -125,10 +159,10 @@ def predict(url: str):
             )
 
         # ---------------------------------------------------
-        # PHISHTANK CHECK
+        # PHISHTANK
         # ---------------------------------------------------
 
-        pt_result = check_phishtank(url)
+        pt_result = scan_results["phishtank"]
 
         if pt_result["malicious"]:
 
@@ -137,10 +171,10 @@ def predict(url: str):
             )
 
         # ---------------------------------------------------
-        # URL REPUTATION ENGINE
+        # REPUTATION ENGINE
         # ---------------------------------------------------
 
-        reputation_result = analyze_url_reputation(url)
+        reputation_result = scan_results["reputation"]
 
         reasons.extend(
             reputation_result["indicators"]
@@ -150,17 +184,17 @@ def predict(url: str):
         # DOMAIN INTELLIGENCE
         # ---------------------------------------------------
 
-        domain_result = analyze_domain_intelligence(url)
+        domain_result = scan_results["domain_intel"]
 
         reasons.extend(
             domain_result["indicators"]
         )
 
         # ---------------------------------------------------
-        # DISTILBERT AI ANALYSIS
+        # DISTILBERT ANALYSIS
         # ---------------------------------------------------
 
-        bert_result = bert_url_analysis(url)
+        bert_result = scan_results["bert"]
 
         reasons.extend(
             bert_result["reasons"]
@@ -173,7 +207,7 @@ def predict(url: str):
         reasons = list(set(reasons))
 
         # ---------------------------------------------------
-        # RISK SCORE ENGINE
+        # FINAL RISK SCORE
         # ---------------------------------------------------
 
         risk_score = 0
@@ -181,8 +215,8 @@ def predict(url: str):
         # ML contribution
         risk_score += int(prob * 35)
 
-        # Explanations contribution
-        risk_score += len(reasons) * 5
+        # Explanation contribution
+        risk_score += len(reasons) * 4
 
         # Reputation contribution
         risk_score += reputation_result["score"]
@@ -200,33 +234,6 @@ def predict(url: str):
         # PhishTank contribution
         if pt_result["malicious"]:
             risk_score += 20
-
-        # ---------------------------------------------------
-        # EXTRA SUSPICIOUS KEYWORD ANALYSIS
-        # ---------------------------------------------------
-
-        suspicious_keywords = [
-
-            "login",
-            "secure",
-            "verify",
-            "update",
-            "bank",
-            "paypal",
-            "signin",
-            "account",
-            "password",
-            "auth"
-
-        ]
-
-        lower_url = url.lower()
-
-        for word in suspicious_keywords:
-
-            if word in lower_url:
-
-                risk_score += 4
 
         # ---------------------------------------------------
         # URL LENGTH CHECK
@@ -274,7 +281,7 @@ def predict(url: str):
         # FINAL RESPONSE
         # ---------------------------------------------------
 
-        return {
+        result = {
 
             "prediction": prediction,
             "confidence": round(prob, 4),
@@ -283,6 +290,14 @@ def predict(url: str):
             "reasons": reasons
 
         }
+
+        # ---------------------------------------------------
+        # STORE CACHE
+        # ---------------------------------------------------
+
+        store_result(url, result)
+
+        return result
 
     except Exception as e:
 
