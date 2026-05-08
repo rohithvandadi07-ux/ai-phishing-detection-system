@@ -1,17 +1,17 @@
 {
   "manifest_version": 3,
+
   "name": "Phishing Detector",
+
   "version": "2.0",
-  "description": "Real-time phishing blocker",
+
+  "description": "AI-powered real-time phishing detection and blocking extension",
 
   "permissions": [
-    "tabs",
-    "webNavigation",
-    "storage"
+    "tabs"
   ],
 
   "host_permissions": [
-    "<all_urls>",
     "http://127.0.0.1:8000/*"
   ],
 
@@ -20,6 +20,7 @@
   },
 
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_title": "Phishing Detector"
   }
 }

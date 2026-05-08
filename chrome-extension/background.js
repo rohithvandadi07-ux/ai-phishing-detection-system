@@ -1,25 +1,49 @@
-chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
-    if (details.frameId !== 0) return;
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
-    const url = details.url;
+    // Run only when page fully loads
+    if (changeInfo.status !== "complete" || !tab.url) {
+        return;
+    }
 
-    if (!url.startsWith("http")) return;
+    // Ignore Chrome internal pages
+    if (
+        tab.url.startsWith("chrome://") ||
+        tab.url.startsWith("chrome-extension://") ||
+        tab.url.startsWith("edge://")
+    ) {
+        return;
+    }
 
     try {
+
+        // Send URL to FastAPI backend
         const response = await fetch(
-            `http://127.0.0.1:8000/predict?url=${encodeURIComponent(url)}`,
-            { method: "POST" }
+            `http://127.0.0.1:8000/predict?url=${encodeURIComponent(tab.url)}`,
+            {
+                method: "POST"
+            }
         );
 
         const data = await response.json();
 
+        console.log("Checked URL:", tab.url);
+        console.log("Prediction:", data);
+
+        // 🚨 Block malicious websites
         if (data.prediction === "malicious") {
-            chrome.tabs.update(details.tabId, {
-                url: chrome.runtime.getURL("blocked.html") + "?url=" + encodeURIComponent(url)
+
+            const blockedUrl =
+                chrome.runtime.getURL(
+                    "blocked.html?url=" + encodeURIComponent(tab.url)
+                );
+
+            chrome.tabs.update(tabId, {
+                url: blockedUrl
             });
         }
 
-    } catch (err) {
-        console.log("API error:", err);
+    } catch (error) {
+
+        console.error("Background scanner error:", error);
     }
 });
