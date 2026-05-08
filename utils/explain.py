@@ -1,85 +1,92 @@
 from urllib.parse import urlparse
-import difflib
-
-# Trusted brands
-BRANDS = [
-    "google",
-    "paypal",
-    "amazon",
-    "facebook",
-    "microsoft",
-    "apple",
-    "netflix",
-    "linkedin",
-    "instagram",
-    "github"
-]
-
-# Suspicious TLDs commonly used in phishing
-SUSPICIOUS_TLDS = [
-    ".xyz", ".top", ".tk", ".gq", ".ml",
-    ".click", ".buzz", ".shop", ".country"
-]
-
-
-def is_typosquatting(domain, brand):
-    similarity = difflib.SequenceMatcher(None, domain, brand).ratio()
-    return similarity > 0.75 and domain != brand
 
 
 def explain_url(url):
+
     reasons = []
 
+    lower_url = url.lower()
+
     parsed = urlparse(url)
-    hostname = parsed.netloc.lower()
 
-    # remove www
-    if hostname.startswith("www."):
-        hostname = hostname[4:]
+    domain = parsed.netloc.lower()
 
-    # remove TLD for comparison
-    domain_name = hostname.split(".")[0]
+    # -------------------------
+    # Suspicious keywords
+    # -------------------------
 
-    # -----------------------------------
-    # Typosquatting / brand impersonation
-    # -----------------------------------
-    for brand in BRANDS:
+    suspicious_keywords = [
+        "login",
+        "secure",
+        "verify",
+        "update",
+        "bank",
+        "paypal",
+        "signin",
+        "account",
+        "confirm",
+        "password"
+    ]
 
-        if brand in hostname and hostname != f"{brand}.com":
-            reasons.append(f"Possible fake '{brand}' domain")
+    for word in suspicious_keywords:
 
-        elif is_typosquatting(domain_name, brand):
-            reasons.append(f"Typosquatting detected for '{brand}'")
+        if word in lower_url:
+            reasons.append(f"Contains '{word}' keyword")
 
-    # -----------------------------------
-    # Suspicious TLD
-    # -----------------------------------
-    for tld in SUSPICIOUS_TLDS:
-        if hostname.endswith(tld):
-            reasons.append(f"Suspicious TLD detected ({tld})")
+    # -------------------------
+    # HTTP check
+    # -------------------------
 
-    # -----------------------------------
-    # Existing checks
-    # -----------------------------------
-    if "login" in url.lower():
-        reasons.append("Contains 'login' keyword")
-
-    if "verify" in url.lower():
-        reasons.append("Contains 'verify' keyword")
-
-    if "secure" in url.lower():
-        reasons.append("Contains 'secure' keyword")
-
-    if url.startswith("http://"):
+    if lower_url.startswith("http://"):
         reasons.append("Uses insecure HTTP")
 
-    if url.count("-") >= 3:
-        reasons.append("Too many hyphens in URL")
+    # -------------------------
+    # Long URL
+    # -------------------------
 
-    if url.count(".") >= 5:
+    if len(url) > 75:
+        reasons.append("Very long URL")
+
+    # -------------------------
+    # Too many dots
+    # -------------------------
+
+    if domain.count(".") >= 3:
         reasons.append("Too many subdomains")
 
-    if not reasons:
-        reasons.append("No strong phishing indicators detected")
+    # -------------------------
+    # Suspicious TLDs
+    # -------------------------
+
+    suspicious_tlds = [
+        ".xyz",
+        ".top",
+        ".tk",
+        ".gq",
+        ".ml",
+        ".cf"
+    ]
+
+    for tld in suspicious_tlds:
+
+        if domain.endswith(tld):
+            reasons.append(f"Suspicious TLD: {tld}")
+
+    # -------------------------
+    # Typosquatting checks
+    # -------------------------
+
+    fake_brands = [
+        "paypa1",
+        "g00gle",
+        "micr0soft",
+        "faceb00k",
+        "amaz0n"
+    ]
+
+    for brand in fake_brands:
+
+        if brand in lower_url:
+            reasons.append("Possible brand impersonation")
 
     return reasons

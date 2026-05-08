@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 import pickle
 from urllib.parse import urlparse
 
@@ -8,78 +7,128 @@ from utils.explain import explain_url
 
 app = FastAPI()
 
-# 🔓 Allow extension/browser requests (IMPORTANT)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Load model
+# Load ML model
 lgb_model = pickle.load(open("models/lgb_model_small.pkl", "rb"))
 scaler = pickle.load(open("models/scaler.pkl", "rb"))
 
-# 🔒 Trusted domains
+# Trusted domains
 SAFE_DOMAINS = {
-    "google.com", "github.com", "amazon.com", "amazon.in",
-    "microsoft.com", "apple.com", "facebook.com",
-    "stackoverflow.com", "linkedin.com",
-    "youtube.com", "openai.com", "kaggle.com"
+    "google.com",
+    "github.com",
+    "amazon.com",
+    "amazon.in",
+    "microsoft.com",
+    "apple.com",
+    "linkedin.com",
+    "stackoverflow.com"
 }
 
 
 @app.get("/")
 def home():
-    return {"message": "API Running"}
+    return {"message": "AI Phishing Detection API Running"}
 
 
 @app.post("/predict")
 def predict(url: str):
-    try:
-        # 🚫 Ignore non-web URLs (VERY IMPORTANT)
-        if not url.startswith("http"):
-            return {
-                "prediction": "safe",
-                "confidence": 1.0,
-                "why_flagged": ["Non-web URL (ignored)"]
-            }
 
-        # 🔍 Parse domain
+    try:
+
         parsed = urlparse(url)
         hostname = parsed.netloc.lower()
 
-        # remove www.
         if hostname.startswith("www."):
             hostname = hostname[4:]
 
-        # 🔥 SAFE DOMAIN CHECK (supports subdomains)
-        if any(hostname == d or hostname.endswith("." + d) for d in SAFE_DOMAINS):
+        # SAFE DOMAIN OVERRIDE
+        if hostname in SAFE_DOMAINS:
+
             return {
                 "prediction": "safe",
                 "confidence": 1.0,
-                "why_flagged": ["Trusted domain whitelist"]
+                "risk_score": 0,
+                "risk_level": "SAFE",
+                "reasons": ["Trusted domain whitelist"]
             }
 
-        # 🔢 Extract features
+        # Extract features
         feat = extract_features(url)
         feat_scaled = scaler.transform([feat])
 
-        # 🤖 Model prediction
+        # ML prediction
         pred = lgb_model.predict(feat_scaled)[0]
-        prob = lgb_model.predict_proba(feat_scaled)[0][1]
+        prob = float(lgb_model.predict_proba(feat_scaled)[0][1])
+
+        # AI explanations
+        reasons = explain_url(url)
+
+        # -------------------------
+        # RISK SCORE ENGINE
+        # -------------------------
+
+        risk_score = 0
+
+        # ML confidence contribution
+        risk_score += int(prob * 60)
+
+        # Explanation contribution
+        risk_score += len(reasons) * 10
+
+        # Bonus penalties
+        suspicious_keywords = [
+            "login",
+            "secure",
+            "verify",
+            "update",
+            "bank",
+            "paypal",
+            "signin"
+        ]
+
+        lower_url = url.lower()
+
+        for word in suspicious_keywords:
+            if word in lower_url:
+                risk_score += 5
+
+        # Clamp
+        if risk_score > 100:
+            risk_score = 100
+
+        # -------------------------
+        # RISK LEVELS
+        # -------------------------
+
+        if risk_score >= 80:
+            risk_level = "CRITICAL"
+
+        elif risk_score >= 60:
+            risk_level = "HIGH"
+
+        elif risk_score >= 35:
+            risk_level = "MEDIUM"
+
+        else:
+            risk_level = "SAFE"
+
+        # Final prediction logic
+        prediction = "malicious" if risk_level != "SAFE" else "safe"
 
         return {
-            "prediction": "malicious" if pred == 1 else "safe",
-            "confidence": float(prob),
-            "why_flagged": explain_url(url)
+
+            "prediction": prediction,
+            "confidence": prob,
+            "risk_score": risk_score,
+            "risk_level": risk_level,
+            "reasons": reasons
         }
 
     except Exception as e:
-        # 🚨 Fail-safe
+
         return {
             "prediction": "error",
             "confidence": 0.0,
-            "why_flagged": [f"Internal error: {str(e)}"]
+            "risk_score": 0,
+            "risk_level": "UNKNOWN",
+            "reasons": [str(e)]
         }
