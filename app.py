@@ -12,6 +12,9 @@ from utils.threat_intel import (
     check_phishtank
 )
 
+# NEW
+from utils.distilbert_detector import bert_url_analysis
+
 app = FastAPI()
 
 # ---------------------------------------------------
@@ -122,7 +125,7 @@ def predict(url: str):
             )
 
         # ---------------------------------------------------
-        # PHISHTANK / OPENPHISH CHECK
+        # PHISHTANK CHECK
         # ---------------------------------------------------
 
         pt_result = check_phishtank(url)
@@ -138,19 +141,35 @@ def predict(url: str):
         # ---------------------------------------------------
 
         reputation_result = analyze_url_reputation(url)
-        # Domain Intelligence
-        domain_result = analyze_domain_intelligence(url)
-
-        # Add indicators
-        reasons.extend(
-            domain_result["indicators"]
-        )
 
         reasons.extend(
             reputation_result["indicators"]
         )
 
-        # Remove duplicates
+        # ---------------------------------------------------
+        # DOMAIN INTELLIGENCE
+        # ---------------------------------------------------
+
+        domain_result = analyze_domain_intelligence(url)
+
+        reasons.extend(
+            domain_result["indicators"]
+        )
+
+        # ---------------------------------------------------
+        # DISTILBERT AI ANALYSIS
+        # ---------------------------------------------------
+
+        bert_result = bert_url_analysis(url)
+
+        reasons.extend(
+            bert_result["reasons"]
+        )
+
+        # ---------------------------------------------------
+        # REMOVE DUPLICATES
+        # ---------------------------------------------------
+
         reasons = list(set(reasons))
 
         # ---------------------------------------------------
@@ -160,16 +179,19 @@ def predict(url: str):
         risk_score = 0
 
         # ML contribution
-        risk_score += int(prob * 45)
+        risk_score += int(prob * 35)
 
         # Explanations contribution
-        risk_score += len(reasons) * 6
+        risk_score += len(reasons) * 5
 
-        # Reputation engine contribution
+        # Reputation contribution
         risk_score += reputation_result["score"]
 
         # Domain intelligence contribution
         risk_score += domain_result["score"]
+
+        # DistilBERT contribution
+        risk_score += bert_result["score"]
 
         # VirusTotal contribution
         if vt_result["malicious"]:
