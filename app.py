@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 from utils.features import extract_features
 from utils.explain import explain_url
 from utils.reputation import analyze_url_reputation
+from utils.domain_intel import analyze_domain_intelligence
 
 from utils.threat_intel import (
     check_virustotal,
@@ -137,6 +138,13 @@ def predict(url: str):
         # ---------------------------------------------------
 
         reputation_result = analyze_url_reputation(url)
+        # Domain Intelligence
+        domain_result = analyze_domain_intelligence(url)
+
+        # Add indicators
+        reasons.extend(
+            domain_result["indicators"]
+        )
 
         reasons.extend(
             reputation_result["indicators"]
@@ -159,6 +167,9 @@ def predict(url: str):
 
         # Reputation engine contribution
         risk_score += reputation_result["score"]
+
+        # Domain intelligence contribution
+        risk_score += domain_result["score"]
 
         # VirusTotal contribution
         if vt_result["malicious"]:
