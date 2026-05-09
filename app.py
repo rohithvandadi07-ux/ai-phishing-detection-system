@@ -16,13 +16,22 @@ from utils.cache import (
 
 from utils.async_scanner import async_scan
 
-from utils.logger import log_detection
+from utils.database import (
+    initialize_database,
+    log_detection
+)
 
 # ---------------------------------------------------
 # FASTAPI INIT
 # ---------------------------------------------------
 
 app = FastAPI()
+
+# ---------------------------------------------------
+# INITIALIZE SQLITE DATABASE
+# ---------------------------------------------------
+
+initialize_database()
 
 # ---------------------------------------------------
 # CORS FIX FOR CHROME EXTENSION
@@ -129,7 +138,7 @@ def predict(url: str):
 
             }
 
-            # Cache result
+            # Store cache
             store_result(url, result)
 
             # Log detection
@@ -333,7 +342,7 @@ def predict(url: str):
         store_result(url, result)
 
         # ---------------------------------------------------
-        # LOG DETECTION
+        # SQLITE LOGGING
         # ---------------------------------------------------
 
         log_detection(
