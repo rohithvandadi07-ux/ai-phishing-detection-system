@@ -1,6 +1,9 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 import pickle
 import asyncio
+
 from urllib.parse import urlparse
 
 from utils.features import extract_features
@@ -13,14 +16,35 @@ from utils.cache import (
 
 from utils.async_scanner import async_scan
 
+# ---------------------------------------------------
+# FASTAPI INIT
+# ---------------------------------------------------
+
 app = FastAPI()
+
+# ---------------------------------------------------
+# CORS FIX FOR CHROME EXTENSION
+# ---------------------------------------------------
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ---------------------------------------------------
 # LOAD MODEL
 # ---------------------------------------------------
 
-lgb_model = pickle.load(open("models/lgb_model_small.pkl", "rb"))
-scaler = pickle.load(open("models/scaler.pkl", "rb"))
+lgb_model = pickle.load(
+    open("models/lgb_model_small.pkl", "rb")
+)
+
+scaler = pickle.load(
+    open("models/scaler.pkl", "rb")
+)
 
 # ---------------------------------------------------
 # TRUSTED SAFE DOMAINS
@@ -47,14 +71,19 @@ SAFE_DOMAINS = {
 def home():
 
     return {
+
         "message": "AI Phishing Detection API Running"
+
     }
 
 # ---------------------------------------------------
 # MAIN PREDICTION ROUTE
 # ---------------------------------------------------
 
-@app.post("/predict")
+@app.api_route(
+    "/predict",
+    methods=["GET", "POST", "OPTIONS"]
+)
 def predict(url: str):
 
     try:
@@ -73,9 +102,11 @@ def predict(url: str):
         # ---------------------------------------------------
 
         parsed = urlparse(url)
+
         hostname = parsed.netloc.lower()
 
         if hostname.startswith("www."):
+
             hostname = hostname[4:]
 
         # ---------------------------------------------------
@@ -105,6 +136,7 @@ def predict(url: str):
         # ---------------------------------------------------
 
         feat = extract_features(url)
+
         feat_scaled = scaler.transform([feat])
 
         # ---------------------------------------------------
@@ -121,7 +153,9 @@ def predict(url: str):
         # INITIAL EXPLANATIONS
         # ---------------------------------------------------
 
-        reasons = list(set(explain_url(url)))
+        reasons = list(
+            set(explain_url(url))
+        )
 
         # ---------------------------------------------------
         # FAST RISK ESTIMATION
@@ -130,9 +164,11 @@ def predict(url: str):
         fast_risk = 0
 
         if prob > 0.80:
+
             fast_risk += 40
 
         if len(reasons) >= 3:
+
             fast_risk += 30
 
         # ---------------------------------------------------
@@ -140,10 +176,12 @@ def predict(url: str):
         # ---------------------------------------------------
 
         scan_results = asyncio.run(
+
             async_scan(
                 url,
                 run_bert_model=False
             )
+
         )
 
         # ---------------------------------------------------
@@ -155,7 +193,9 @@ def predict(url: str):
         if vt_result["malicious"]:
 
             reasons.append(
+
                 f"Flagged by VirusTotal ({vt_result['detections']} detections)"
+
             )
 
         # ---------------------------------------------------
@@ -216,10 +256,12 @@ def predict(url: str):
 
         # VirusTotal contribution
         if vt_result["malicious"]:
+
             risk_score += 25
 
         # PhishTank contribution
         if pt_result["malicious"]:
+
             risk_score += 20
 
         # ---------------------------------------------------
@@ -229,6 +271,7 @@ def predict(url: str):
         if len(url) > 75:
 
             reasons.append("Very long URL")
+
             risk_score += 10
 
         # ---------------------------------------------------
@@ -236,6 +279,7 @@ def predict(url: str):
         # ---------------------------------------------------
 
         if risk_score > 100:
+
             risk_score = 100
 
         # ---------------------------------------------------
@@ -262,7 +306,15 @@ def predict(url: str):
         # FINAL PREDICTION
         # ---------------------------------------------------
 
-        prediction = "malicious" if risk_level != "SAFE" else "safe"
+        prediction = (
+
+            "malicious"
+
+            if risk_level != "SAFE"
+
+            else "safe"
+
+        )
 
         # ---------------------------------------------------
         # FINAL RESPONSE
@@ -271,9 +323,13 @@ def predict(url: str):
         result = {
 
             "prediction": prediction,
+
             "confidence": round(prob, 4),
+
             "risk_score": risk_score,
+
             "risk_level": risk_level,
+
             "reasons": reasons
 
         }
@@ -291,11 +347,17 @@ def predict(url: str):
         return {
 
             "prediction": "error",
+
             "confidence": 0.0,
+
             "risk_score": 0,
+
             "risk_level": "UNKNOWN",
+
             "reasons": [
+
                 str(e)
+
             ]
 
         }
