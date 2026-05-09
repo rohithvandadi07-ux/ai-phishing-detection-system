@@ -142,7 +142,7 @@ def predict(url: str):
         scan_results = asyncio.run(
             async_scan(
                 url,
-                run_bert_model=fast_risk >= 25
+                run_bert_model=False
             )
         )
 
@@ -191,16 +191,6 @@ def predict(url: str):
         )
 
         # ---------------------------------------------------
-        # DISTILBERT ANALYSIS
-        # ---------------------------------------------------
-
-        bert_result = scan_results["bert"]
-
-        reasons.extend(
-            bert_result["reasons"]
-        )
-
-        # ---------------------------------------------------
         # REMOVE DUPLICATES
         # ---------------------------------------------------
 
@@ -223,9 +213,6 @@ def predict(url: str):
 
         # Domain intelligence contribution
         risk_score += domain_result["score"]
-
-        # DistilBERT contribution
-        risk_score += bert_result["score"]
 
         # VirusTotal contribution
         if vt_result["malicious"]:
