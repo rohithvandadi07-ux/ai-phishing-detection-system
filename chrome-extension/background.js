@@ -18,7 +18,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
         // Send URL to FastAPI backend
         const response = await fetch(
-            `http://127.0.0.1:8000/predict?url=${encodeURIComponent(tab.url)}`,
+            `https://ai-phishing-detection-system-y2dn.onrender.com/predict?url=${encodeURIComponent(tab.url)}`,
             {
                 method: "POST"
             }
