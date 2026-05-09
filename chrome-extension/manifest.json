@@ -1,18 +1,19 @@
 {
   "manifest_version": 3,
 
-  "name": "Phishing Detector",
+  "name": "AI Phishing Shield",
 
-  "version": "2.0",
+  "version": "2.1.0",
 
-  "description": "AI-powered real-time phishing detection and blocking extension",
+  "description": "AI-powered real-time phishing detection and malicious website blocking extension.",
 
   "permissions": [
-    "tabs"
+    "tabs",
+    "storage"
   ],
 
   "host_permissions": [
-    "http://127.0.0.1:8000/*"
+    "https://ai-phishing-detection-system-y2dn.onrender.com/*"
   ],
 
   "background": {
@@ -21,6 +22,12 @@
 
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Phishing Detector"
+    "default_title": "AI Phishing Shield"
+  },
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   }
 }

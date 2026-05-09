@@ -1,40 +1,33 @@
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
-    // Run only when page fully loads
     if (changeInfo.status !== "complete" || !tab.url) {
         return;
     }
 
-    // Ignore browser internal pages
     if (
         tab.url.startsWith("chrome://") ||
         tab.url.startsWith("chrome-extension://") ||
-        tab.url.startsWith("edge://") ||
-        tab.url.startsWith("about:") ||
-        tab.url.startsWith("file://")
+        tab.url.startsWith("edge://")
     ) {
         return;
     }
 
     try {
 
-        console.log("Scanning URL:", tab.url);
-
-        // Cloud backend API
         const apiUrl =
-            "https://ai-phishing-detection-system-y2dn.onrender.com/predict?url=" +
-            encodeURIComponent(tab.url);
+            `https://ai-phishing-detection-system-y2dn.onrender.com/predict?url=${encodeURIComponent(tab.url)}`;
 
-        // Send request to backend
         const response = await fetch(apiUrl, {
-            method: "POST"
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            }
         });
 
-        // Handle Render sleeping / failed responses
         if (!response.ok) {
 
             console.error(
-                "Backend API error:",
+                "API Error:",
                 response.status,
                 response.statusText
             );
@@ -42,15 +35,12 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
             return;
         }
 
-        // Parse JSON response
         const data = await response.json();
 
-        console.log("Prediction Result:", data);
+        console.log("Checked URL:", tab.url);
+        console.log("Prediction:", data);
 
-        // Block malicious websites
         if (data.prediction === "malicious") {
-
-            console.log("Malicious website detected!");
 
             const blockedUrl =
                 chrome.runtime.getURL(
