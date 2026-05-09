@@ -16,6 +16,8 @@ from utils.cache import (
 
 from utils.async_scanner import async_scan
 
+from utils.logger import log_detection
+
 # ---------------------------------------------------
 # FASTAPI INIT
 # ---------------------------------------------------
@@ -127,7 +129,17 @@ def predict(url: str):
 
             }
 
+            # Cache result
             store_result(url, result)
+
+            # Log detection
+            log_detection(
+                url=url,
+                prediction="safe",
+                risk_score=0,
+                risk_level="SAFE",
+                confidence=1.0
+            )
 
             return result
 
@@ -156,20 +168,6 @@ def predict(url: str):
         reasons = list(
             set(explain_url(url))
         )
-
-        # ---------------------------------------------------
-        # FAST RISK ESTIMATION
-        # ---------------------------------------------------
-
-        fast_risk = 0
-
-        if prob > 0.80:
-
-            fast_risk += 40
-
-        if len(reasons) >= 3:
-
-            fast_risk += 30
 
         # ---------------------------------------------------
         # ASYNC SCANNING ENGINE
@@ -264,20 +262,14 @@ def predict(url: str):
 
             risk_score += 20
 
-        # ---------------------------------------------------
-        # URL LENGTH CHECK
-        # ---------------------------------------------------
-
+        # URL length check
         if len(url) > 75:
 
             reasons.append("Very long URL")
 
             risk_score += 10
 
-        # ---------------------------------------------------
-        # SCORE CLAMP
-        # ---------------------------------------------------
-
+        # Clamp score
         if risk_score > 100:
 
             risk_score = 100
@@ -339,6 +331,18 @@ def predict(url: str):
         # ---------------------------------------------------
 
         store_result(url, result)
+
+        # ---------------------------------------------------
+        # LOG DETECTION
+        # ---------------------------------------------------
+
+        log_detection(
+            url=url,
+            prediction=prediction,
+            risk_score=risk_score,
+            risk_level=risk_level,
+            confidence=round(prob, 4)
+        )
 
         return result
 
