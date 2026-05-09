@@ -2,5 +2,9 @@ fastapi
 uvicorn
 scikit-learn
 lightgbm
-numpy
+transformers
+torch
 requests
+python-whois
+numpy
+pandas
