@@ -1,12 +1,14 @@
 fastapi
 uvicorn
-lightgbm
-scikit-learn
 numpy
 pandas
+scikit-learn
+lightgbm
 requests
 python-whois
 tldextract
-cachetools
 aiohttp
+cachetools
 python-dotenv
+joblib
+scipy
