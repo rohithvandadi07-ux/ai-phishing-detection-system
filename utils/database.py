@@ -1,122 +1,142 @@
-import sqlite3
+import os
+
+from dotenv import load_dotenv
+
+from sqlalchemy import (
+
+    create_engine,
+    text
+
+)
+
 from datetime import datetime
 
-DB_PATH = "logs/detections.db"
+# ---------------------------------------------------
+# LOAD ENV VARIABLES
+# ---------------------------------------------------
 
+load_dotenv()
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL"
+)
 
 # ---------------------------------------------------
-# CREATE DATABASE + TABLE
+# CREATE ENGINE
+# ---------------------------------------------------
+
+engine = create_engine(
+    DATABASE_URL
+)
+
+# ---------------------------------------------------
+# INITIALIZE DATABASE
 # ---------------------------------------------------
 
 def initialize_database():
 
-    conn = sqlite3.connect(DB_PATH)
+    with engine.connect() as conn:
 
-    cursor = conn.cursor()
+        conn.execute(text("""
 
-    cursor.execute("""
+            CREATE TABLE IF NOT EXISTS detections (
 
-        CREATE TABLE IF NOT EXISTS detections (
+                id SERIAL PRIMARY KEY,
 
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT,
 
-            timestamp TEXT,
+                url TEXT,
 
-            url TEXT,
+                prediction TEXT,
 
-            prediction TEXT,
+                risk_score INTEGER,
 
-            risk_score INTEGER,
+                risk_level TEXT,
 
-            risk_level TEXT,
+                confidence FLOAT
 
-            confidence REAL
+            )
 
-        )
+        """))
 
-    """)
-
-    conn.commit()
-
-    conn.close()
-
+        conn.commit()
 
 # ---------------------------------------------------
-# INSERT DETECTION
+# LOG DETECTION
 # ---------------------------------------------------
 
 def log_detection(
+
     url,
     prediction,
     risk_score,
     risk_level,
     confidence
+
 ):
 
-    conn = sqlite3.connect(DB_PATH)
+    with engine.connect() as conn:
 
-    cursor = conn.cursor()
+        conn.execute(text("""
 
-    cursor.execute("""
+            INSERT INTO detections (
 
-        INSERT INTO detections (
+                timestamp,
+                url,
+                prediction,
+                risk_score,
+                risk_level,
+                confidence
 
-            timestamp,
-            url,
-            prediction,
-            risk_score,
-            risk_level,
-            confidence
+            )
 
-        )
+            VALUES (
 
-        VALUES (?, ?, ?, ?, ?, ?)
+                :timestamp,
+                :url,
+                :prediction,
+                :risk_score,
+                :risk_level,
+                :confidence
 
-    """, (
+            )
 
-        datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"
-        ),
+        """), {
 
-        url,
+            "timestamp": datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
 
-        prediction,
+            "url": url,
 
-        risk_score,
+            "prediction": prediction,
 
-        risk_level,
+            "risk_score": risk_score,
 
-        confidence
+            "risk_level": risk_level,
 
-    ))
+            "confidence": confidence
 
-    conn.commit()
+        })
 
-    conn.close()
-
+        conn.commit()
 
 # ---------------------------------------------------
-# FETCH ALL DETECTIONS
+# FETCH DETECTIONS
 # ---------------------------------------------------
 
 def fetch_detections():
 
-    conn = sqlite3.connect(DB_PATH)
+    with engine.connect() as conn:
 
-    cursor = conn.cursor()
+        result = conn.execute(text("""
 
-    cursor.execute("""
+            SELECT *
 
-        SELECT *
+            FROM detections
 
-        FROM detections
+            ORDER BY id DESC
 
-        ORDER BY id DESC
+        """))
 
-    """)
-
-    rows = cursor.fetchall()
-
-    conn.close()
-
-    return rows
+        return result.fetchall()
