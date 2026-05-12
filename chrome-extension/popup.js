@@ -1,154 +1,56 @@
-const backendUrl =
-    "https://ai-phishing-detection-system-y2dn.onrender.com";
-
-async function checkURL() {
-
-    const [tab] = await chrome.tabs.query({
-        active: true,
-        currentWindow: true
-    });
-
-    const url = tab.url;
-
-    document.getElementById("url").innerText = url;
+document.addEventListener("DOMContentLoaded", async () => {
+    const resultDiv = document.getElementById("result");
 
     try {
+        // Get current active tab
+        const [tab] = await chrome.tabs.query({
+            active: true,
+            currentWindow: true
+        });
 
-        // Check backend first
-        const healthCheck = await fetch(backendUrl);
+        const currentUrl = tab.url;
 
-        if (!healthCheck.ok) {
+        resultDiv.innerHTML = `
+            <p><strong>Scanning URL:</strong></p>
+            <p>${currentUrl}</p>
+            <p>Checking with AI engine...</p>
+        `;
 
-            throw new Error("Backend not reachable");
-        }
-
-        // Send URL to FastAPI backend
+        // Call FastAPI backend
         const response = await fetch(
-            `${backendUrl}/predict?url=${encodeURIComponent(url)}`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            }
+            `http://localhost:8080/predict?url=${encodeURIComponent(currentUrl)}`
         );
-
-        if (!response.ok) {
-
-            throw new Error(
-                `API Error: ${response.status}`
-            );
-        }
 
         const data = await response.json();
 
-        const resultDiv =
-            document.getElementById("result");
+        // Display result
+        resultDiv.innerHTML = `
+            <h2>${data.prediction.toUpperCase()}</h2>
+            <p><strong>Risk Level:</strong> ${data.risk_level}</p>
+            <p><strong>Confidence:</strong> ${(data.confidence * 100).toFixed(2)}%</p>
+            <p><strong>Risk Score:</strong> ${data.risk_score}</p>
+            <hr>
+            <h3>Reasons:</h3>
+            <ul>
+                ${data.reasons.map(reason => `<li>${reason}</li>`).join("")}
+            </ul>
+        `;
 
-        const riskLevel =
-            data.risk_level || "UNKNOWN";
-
-        const riskScore =
-            data.risk_score || 0;
-
-        const confidence =
-            ((data.confidence || 0) * 100)
-            .toFixed(2);
-
-        let color = "#22c55e";
-
-        if (riskLevel === "MEDIUM") {
-            color = "#f59e0b";
+        // Color coding
+        if (data.prediction === "malicious") {
+            resultDiv.style.color = "red";
+        } else {
+            resultDiv.style.color = "lime";
         }
 
-        if (riskLevel === "HIGH") {
-            color = "#ef4444";
-        }
-
-        if (riskLevel === "CRITICAL") {
-            color = "#dc2626";
-        }
-
-        let reasonsHTML = "";
-
-        if (
-            data.reasons &&
-            data.reasons.length > 0
-        ) {
-
-            reasonsHTML = `
-                <div class="reasons">
-                    <h4>Threat Indicators</h4>
-                    <ul>
-                        ${data.reasons
-                            .map(
-                                r => `<li>${r}</li>`
-                            )
-                            .join("")}
-                    </ul>
-                </div>
-            `;
-        }
+    } catch (error) {
+        console.error(error);
 
         resultDiv.innerHTML = `
-            <div class="card">
-
-                <h2 style="color:${color}">
-                    ${
-                        data.prediction === "malicious"
-                        ? "⚠️ Malicious Website"
-                        : "✅ Safe Website"
-                    }
-                </h2>
-
-                <div class="score-box">
-
-                    <div class="score">
-                        <span>Threat Score</span>
-                        <strong>${riskScore}/100</strong>
-                    </div>
-
-                    <div class="score">
-                        <span>Risk Level</span>
-                        <strong style="color:${color}">
-                            ${riskLevel}
-                        </strong>
-                    </div>
-
-                </div>
-
-                <p>
-                    Confidence:
-                    <strong>${confidence}%</strong>
-                </p>
-
-                <p style="margin-top:10px;color:lime;">
-                    Backend Online ✅
-                </p>
-
-                ${reasonsHTML}
-
-            </div>
+            <h2>ERROR</h2>
+            <p>Could not connect to backend.</p>
         `;
 
-    } catch (err) {
-
-        console.error(err);
-
-        document.getElementById("result").innerHTML = `
-            <div class="card">
-
-                <h2 style="color:red;">
-                    Backend Offline ❌
-                </h2>
-
-                <p>
-                    Could not connect to cloud API.
-                </p>
-
-            </div>
-        `;
+        resultDiv.style.color = "orange";
     }
-}
-
-checkURL();
+});
