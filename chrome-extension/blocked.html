@@ -2,72 +2,185 @@
 <html>
 
 <head>
-  <meta charset="UTF-8">
-  <title>Blocked - Phishing Detected</title>
 
-  <style>
-body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+    <title>Blocked - AI Phishing Shield</title>
 
-    .container {
-      background: #1e293b;
-      padding: 30px;
-      border-radius: 12px;
-      text-align: center;
-      max-width: 500px;
-      box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
-    }
+    <style>
 
-    h1 {
-      color: red;
-      margin-bottom: 10px;
-    }
+        body {
 
-    .url {
-      margin: 10px 0;
-      color: #f87171;
-      word-break: break-all;
-    }
+            background-color: #0d1117;
+            color: white;
 
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: red;
-      border: none;
-      color: white;
-      cursor: pointer;
-      border-radius: 6px;
-      font-size: 16px;
-    }
+            font-family: Arial, sans-serif;
 
-    button:hover {
-      background: #dc2626;
-    }
-  </style>
+            display: flex;
+
+            justify-content: center;
+            align-items: center;
+
+            height: 100vh;
+
+            margin: 0;
+        }
+
+        .container {
+
+            background: #161b22;
+
+            border: 2px solid red;
+
+            border-radius: 15px;
+
+            padding: 40px;
+
+            width: 700px;
+
+            box-shadow: 0 0 25px red;
+        }
+
+        h1 {
+
+            color: red;
+
+            font-size: 42px;
+
+            margin-bottom: 10px;
+        }
+
+        .danger {
+
+            font-size: 22px;
+
+            color: orange;
+
+            margin-bottom: 25px;
+        }
+
+        .info {
+
+            margin-top: 20px;
+
+            padding: 15px;
+
+            background: #0d1117;
+
+            border-radius: 10px;
+
+            word-wrap: break-word;
+        }
+
+        .label {
+
+            color: cyan;
+
+            font-weight: bold;
+        }
+
+        .score {
+
+            color: red;
+
+            font-size: 28px;
+
+            font-weight: bold;
+        }
+
+        button {
+
+            margin-top: 30px;
+
+            background: red;
+
+            border: none;
+
+            padding: 15px 25px;
+
+            color: white;
+
+            font-size: 18px;
+
+            border-radius: 10px;
+
+            cursor: pointer;
+        }
+
+        button:hover {
+
+            background: darkred;
+        }
+
+    </style>
+
 </head>
 
 <body>
 
-  <div class="container">
-    <h1>⚠️ Phishing Website Blocked</h1>
+    <div class="container">
 
-    <p>This site has been identified as potentially malicious.</p>
+        <h1>⚠ WEBSITE BLOCKED</h1>
 
-    <p class="url" id="url"></p>
+        <div class="danger">
 
-    <button id="backBtn">Go Back</button>
-  </div>
+            AI Phishing Shield detected this website as dangerous.
 
-  <!-- EXTERNAL JS ONLY -->
-  <script src="blocked.js"></script>
+        </div>
+
+        <!-- URL INFO -->
+
+        <div class="info">
+
+            <p>
+
+                <span class="label">Blocked URL:</span>
+
+            </p>
+
+            <p id="blocked-url"></p>
+
+        </div>
+
+        <!-- RISK INFO -->
+
+        <div class="info">
+
+            <p>
+
+                <span class="label">Risk Level:</span>
+
+                <span id="risk-level"></span>
+
+            </p>
+
+            <p>
+
+                <span class="label">Risk Score:</span>
+
+                <span class="score" id="risk-score"></span>
+
+            </p>
+
+            <p>
+
+                <span class="label">Confidence:</span>
+
+                <span id="confidence"></span>
+
+            </p>
+
+        </div>
+
+        <!-- BUTTON -->
+
+        <button id="back-button">
+
+            Go Back To Safety
+
+        </button>
+
+    </div>
+
+    <script src="blocked.js"></script>
 
 </body>
 

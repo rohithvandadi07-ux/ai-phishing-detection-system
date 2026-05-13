@@ -3,31 +3,23 @@
 
   "name": "AI Phishing Shield",
 
-  "version": "2.1.0",
+  "version": "1.0",
 
-  "description": "AI-powered real-time phishing detection and malicious website blocking extension.",
+  "description": "AI-powered phishing detection extension",
 
   "permissions": [
-    "tabs",
-    "storage"
+    "tabs"
   ],
 
   "host_permissions": [
-    "https://ai-phishing-detection-system-y2dn.onrender.com/*"
+    "http://localhost:8080/*"
   ],
+
+  "action": {
+    "default_popup": "popup.html"
+  },
 
   "background": {
     "service_worker": "background.js"
-  },
-
-  "action": {
-    "default_popup": "popup.html",
-    "default_title": "AI Phishing Shield"
-  },
-
-  "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
   }
 }

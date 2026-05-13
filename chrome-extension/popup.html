@@ -1,35 +1,144 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
     <title>AI Phishing Shield</title>
 
     <style>
+
         body {
-            width: 350px;
-            background-color: #111;
+
+            width: 380px;
+
+            background: #0f172a;
+
             color: white;
+
             font-family: Arial, sans-serif;
+
             padding: 15px;
+
+            margin: 0;
         }
 
         h1 {
+
             color: cyan;
+
             text-align: center;
+
+            margin-bottom: 20px;
         }
 
         #result {
-            margin-top: 15px;
+
+            background: #111827;
+
+            padding: 15px;
+
+            border-radius: 10px;
+
+            margin-bottom: 20px;
+
             word-wrap: break-word;
         }
 
+        #result h2 {
+
+            margin-top: 0;
+        }
+
+        .safe {
+
+            color: #22c55e;
+        }
+
+        .danger {
+
+            color: #ef4444;
+        }
+
+        .warning {
+
+            color: #f59e0b;
+        }
+
+        hr {
+
+            border: 1px solid #374151;
+
+            margin: 15px 0;
+        }
+
         ul {
+
             padding-left: 20px;
         }
 
         li {
+
             margin-bottom: 5px;
         }
+
+        .history-box {
+
+            background: #111827;
+
+            padding: 15px;
+
+            border-radius: 10px;
+        }
+
+        .history-title {
+
+            color: cyan;
+
+            font-size: 18px;
+
+            margin-bottom: 15px;
+        }
+
+        .history-item {
+
+            background: #1f2937;
+
+            padding: 10px;
+
+            border-radius: 8px;
+
+            margin-bottom: 10px;
+
+            border-left: 4px solid red;
+        }
+
+        .history-url {
+
+            font-size: 12px;
+
+            word-break: break-all;
+
+            margin-bottom: 5px;
+        }
+
+        .history-risk {
+
+            color: #ef4444;
+
+            font-weight: bold;
+        }
+
+        .history-time {
+
+            font-size: 11px;
+
+            color: #9ca3af;
+
+            margin-top: 5px;
+        }
+
     </style>
+
 </head>
 
 <body>
@@ -37,10 +146,29 @@
     <h1>AI Phishing Shield</h1>
 
     <div id="result">
+
         Loading...
+
+    </div>
+
+    <div class="history-box">
+
+        <div class="history-title">
+
+            Recent Threats
+
+        </div>
+
+        <div id="history">
+
+            No threats detected yet.
+
+        </div>
+
     </div>
 
     <script src="popup.js"></script>
 
 </body>
+
 </html>
