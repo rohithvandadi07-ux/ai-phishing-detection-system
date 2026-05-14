@@ -8,11 +8,16 @@
   "description": "AI-powered phishing detection extension",
 
   "permissions": [
-    "tabs"
+    "tabs",
+    "activeTab",
+    "storage",
+    "notifications"
   ],
 
   "host_permissions": [
-    "http://localhost:8080/*"
+    "http://localhost:8080/*",
+    "https://ai-phishing-detection-system-y2dn.onrender.com/*",
+    "<all_urls>"
   ],
 
   "action": {

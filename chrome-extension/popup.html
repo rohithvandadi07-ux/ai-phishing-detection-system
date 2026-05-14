@@ -42,6 +42,8 @@
             margin-bottom: 20px;
 
             word-wrap: break-word;
+
+            border: 1px solid #1f2937;
         }
 
         #result h2 {
@@ -79,6 +81,8 @@
         li {
 
             margin-bottom: 5px;
+
+            line-height: 1.4;
         }
 
         .history-box {
@@ -88,6 +92,8 @@
             padding: 15px;
 
             border-radius: 10px;
+
+            border: 1px solid #1f2937;
         }
 
         .history-title {
@@ -97,6 +103,8 @@
             font-size: 18px;
 
             margin-bottom: 15px;
+
+            font-weight: bold;
         }
 
         .history-item {
@@ -119,6 +127,8 @@
             word-break: break-all;
 
             margin-bottom: 5px;
+
+            color: #f3f4f6;
         }
 
         .history-risk {
@@ -137,6 +147,11 @@
             margin-top: 5px;
         }
 
+        .loading {
+
+            color: #9ca3af;
+        }
+
     </style>
 
 </head>
@@ -145,11 +160,19 @@
 
     <h1>AI Phishing Shield</h1>
 
+    <!-- MAIN RESULT -->
+
     <div id="result">
 
-        Loading...
+        <p class="loading">
+
+            Loading scan result...
+
+        </p>
 
     </div>
+
+    <!-- HISTORY SECTION -->
 
     <div class="history-box">
 
@@ -161,7 +184,11 @@
 
         <div id="history">
 
-            No threats detected yet.
+            <p class="loading">
+
+                Loading history...
+
+            </p>
 
         </div>
 

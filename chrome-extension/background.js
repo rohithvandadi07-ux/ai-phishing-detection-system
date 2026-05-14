@@ -9,7 +9,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     }
 
     // ---------------------------------------------------
-    // BLOCKED PAGE BADGE
+    // IF ALREADY BLOCK PAGE
     // ---------------------------------------------------
 
     if (tab.url.includes("blocked.html")) {
@@ -87,20 +87,21 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         const cacheKey = `scan_${tab.url}`;
 
         // ---------------------------------------------------
-        // GET CACHE
+        // CHECK CACHE
         // ---------------------------------------------------
 
-        const result = await chrome.storage.local.get([cacheKey]);
+        const cache =
+            await chrome.storage.local.get([cacheKey]);
 
         // ---------------------------------------------------
         // CACHE HIT
         // ---------------------------------------------------
 
-        if (result[cacheKey]) {
+        if (cache[cacheKey]) {
 
             console.log("CACHE HIT");
 
-            const data = result[cacheKey];
+            const data = cache[cacheKey];
 
             // SAFE CACHE
 
@@ -121,7 +122,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
                 return;
             }
 
-            // BAD CACHE
+            // MALICIOUS CACHE
 
             chrome.action.setBadgeText({
 
@@ -135,28 +136,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
                 tabId: tabId
             });
 
-            // ---------------------------------------------------
-            // SAVE HISTORY
-            // ---------------------------------------------------
-
-            chrome.storage.local.get(["phishingHistory"], (historyResult) => {
-
-                const history = historyResult.phishingHistory || [];
-
-                history.unshift({
-
-                    url: tab.url,
-
-                    score: data.risk_score,
-
-                    time: new Date().toLocaleString()
-                });
-
-                chrome.storage.local.set({
-
-                    phishingHistory: history.slice(0, 20)
-                });
-            });
+            // BLOCK PAGE
 
             const blockedUrl =
                 chrome.runtime.getURL(
@@ -181,7 +161,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         console.log("CACHE MISS");
 
         // ---------------------------------------------------
-        // API REQUEST
+        // API CALL
         // ---------------------------------------------------
 
         const apiUrl =
@@ -197,33 +177,21 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         });
 
         // ---------------------------------------------------
-        // API ERROR
+        // BACKEND ERROR
         // ---------------------------------------------------
 
         if (!response.ok) {
 
-            chrome.action.setBadgeText({
-
-                text: "ERR",
-                tabId: tabId
-            });
-
-            chrome.action.setBadgeBackgroundColor({
-
-                color: "#f59e0b",
-                tabId: tabId
-            });
-
-            return;
+            throw new Error("Backend failed");
         }
 
         // ---------------------------------------------------
-        // RESPONSE
+        // JSON RESPONSE
         // ---------------------------------------------------
 
         const data = await response.json();
 
-        console.log(data);
+        console.log("Backend Response:", data);
 
         // ---------------------------------------------------
         // SAVE CACHE
@@ -237,7 +205,33 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         console.log("Saved to cache");
 
         // ---------------------------------------------------
-        // SAFE
+        // SAVE HISTORY
+        // ---------------------------------------------------
+
+        const historyResult =
+            await chrome.storage.local.get(["phishingHistory"]);
+
+        const history =
+            historyResult.phishingHistory || [];
+
+        history.unshift({
+
+            url: tab.url,
+
+            score: data.risk_score,
+
+            prediction: data.prediction,
+
+            time: new Date().toLocaleString()
+        });
+
+        await chrome.storage.local.set({
+
+            phishingHistory: history.slice(0, 20)
+        });
+
+        // ---------------------------------------------------
+        // SAFE RESULT
         // ---------------------------------------------------
 
         if (data.prediction === "safe") {
@@ -258,7 +252,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         }
 
         // ---------------------------------------------------
-        // BAD
+        // MALICIOUS RESULT
         // ---------------------------------------------------
 
         chrome.action.setBadgeText({
@@ -274,27 +268,8 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         });
 
         // ---------------------------------------------------
-        // SAVE HISTORY
+        // REDIRECT TO BLOCK PAGE
         // ---------------------------------------------------
-
-        chrome.storage.local.get(["phishingHistory"], (historyResult) => {
-
-            const history = historyResult.phishingHistory || [];
-
-            history.unshift({
-
-                url: tab.url,
-
-                score: data.risk_score,
-
-                time: new Date().toLocaleString()
-            });
-
-            chrome.storage.local.set({
-
-                phishingHistory: history.slice(0, 20)
-            });
-        });
 
         const blockedUrl =
             chrome.runtime.getURL(
@@ -311,7 +286,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
     } catch (error) {
 
-        console.error(error);
+        console.error("Scanner Error:", error);
 
         chrome.action.setBadgeText({
 
