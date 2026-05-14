@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import pickle
 import asyncio
 
 from urllib.parse import urlparse
@@ -20,6 +19,8 @@ from utils.database import (
     initialize_database,
     log_detection
 )
+
+from utils.fusion_engine import fusion_predict
 
 # ---------------------------------------------------
 # FASTAPI INIT
@@ -43,18 +44,6 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
-
-# ---------------------------------------------------
-# LOAD MODEL
-# ---------------------------------------------------
-
-lgb_model = pickle.load(
-    open("models/lgb_model_small.pkl", "rb")
-)
-
-scaler = pickle.load(
-    open("models/scaler.pkl", "rb")
 )
 
 # ---------------------------------------------------
@@ -83,7 +72,7 @@ def home():
 
     return {
 
-        "message": "AI Phishing Detection API Running"
+        "message": "AI Phishing Shield Hybrid AI API Running"
 
     }
 
@@ -129,24 +118,33 @@ def predict(url: str):
             result = {
 
                 "prediction": "safe",
+
                 "confidence": 1.0,
+
                 "risk_score": 0,
+
                 "risk_level": "SAFE",
+
                 "reasons": [
+
                     "Trusted domain whitelist"
+
                 ]
 
             }
 
-            # Store cache
             store_result(url, result)
 
-            # Log detection
             log_detection(
+
                 url=url,
+
                 prediction="safe",
+
                 risk_score=0,
+
                 risk_level="SAFE",
+
                 confidence=1.0
             )
 
@@ -158,25 +156,58 @@ def predict(url: str):
 
         feat = extract_features(url)
 
-        feat_scaled = scaler.transform([feat])
-
         # ---------------------------------------------------
-        # ML PREDICTION
+        # HYBRID AI ENGINE
         # ---------------------------------------------------
 
-        pred = lgb_model.predict(feat_scaled)[0]
-
-        prob = float(
-            lgb_model.predict_proba(feat_scaled)[0][1]
+        fusion_result = fusion_predict(
+            url,
+            feat
         )
+
+        prob = fusion_result["probability"]
+
+        lgb_prob = fusion_result["lgb_prob"]
+
+        rf_prob = fusion_result["rf_prob"]
 
         # ---------------------------------------------------
         # INITIAL EXPLANATIONS
         # ---------------------------------------------------
 
         reasons = list(
+
             set(explain_url(url))
+
         )
+
+        # ---------------------------------------------------
+        # AI MODEL INDICATORS
+        # ---------------------------------------------------
+
+        if lgb_prob > 0.7:
+
+            reasons.append(
+
+                "LightGBM detected phishing patterns"
+
+            )
+
+        if rf_prob > 0.7:
+
+            reasons.append(
+
+                "Random Forest detected malicious behavior"
+
+            )
+
+        if prob > 0.85:
+
+            reasons.append(
+
+                "Hybrid AI engine flagged high-risk phishing indicators"
+
+            )
 
         # ---------------------------------------------------
         # ASYNC SCANNING ENGINE
@@ -214,7 +245,9 @@ def predict(url: str):
         if pt_result["malicious"]:
 
             reasons.append(
+
                 "Flagged by PhishTank database"
+
             )
 
         # ---------------------------------------------------
@@ -224,7 +257,9 @@ def predict(url: str):
         reputation_result = scan_results["reputation"]
 
         reasons.extend(
+
             reputation_result["indicators"]
+
         )
 
         # ---------------------------------------------------
@@ -234,7 +269,9 @@ def predict(url: str):
         domain_result = scan_results["domain_intel"]
 
         reasons.extend(
+
             domain_result["indicators"]
+
         )
 
         # ---------------------------------------------------
@@ -249,36 +286,48 @@ def predict(url: str):
 
         risk_score = 0
 
-        # ML contribution
-        risk_score += int(prob * 35)
+        # Hybrid AI contribution
+
+        risk_score += int(prob * 45)
 
         # Explanation contribution
+
         risk_score += len(reasons) * 4
 
         # Reputation contribution
+
         risk_score += reputation_result["score"]
 
         # Domain intelligence contribution
+
         risk_score += domain_result["score"]
 
         # VirusTotal contribution
+
         if vt_result["malicious"]:
 
             risk_score += 25
 
         # PhishTank contribution
+
         if pt_result["malicious"]:
 
             risk_score += 20
 
-        # URL length check
+        # URL length contribution
+
         if len(url) > 75:
 
-            reasons.append("Very long URL")
+            reasons.append(
+
+                "Very long URL"
+
+            )
 
             risk_score += 10
 
-        # Clamp score
+        # Clamp
+
         if risk_score > 100:
 
             risk_score = 100
@@ -331,7 +380,17 @@ def predict(url: str):
 
             "risk_level": risk_level,
 
-            "reasons": reasons
+            "reasons": reasons,
+
+            "ai_engine": {
+
+                "lgb_probability": round(lgb_prob, 4),
+
+                "rf_probability": round(rf_prob, 4),
+
+                "hybrid_probability": round(prob, 4)
+
+            }
 
         }
 
@@ -346,11 +405,17 @@ def predict(url: str):
         # ---------------------------------------------------
 
         log_detection(
+
             url=url,
+
             prediction=prediction,
+
             risk_score=risk_score,
+
             risk_level=risk_level,
+
             confidence=round(prob, 4)
+
         )
 
         return result
