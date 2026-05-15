@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+
+        AI Threat Scan
+
+    </title>
+
+    <style>
+
+        * {
+
+            margin: 0;
+            padding: 0;
+
+            box-sizing: border-box;
+        }
+
+        body {
+
+            background:
+                radial-gradient(
+                    circle at top,
+                    #08111f,
+                    #02060d 60%
+                );
+
+            color: white;
+
+            font-family:
+                Inter,
+                Arial,
+                sans-serif;
+
+            min-height: 100vh;
+
+            overflow-y: auto;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            padding: 40px 20px;
+        }
+
+        /* GLOW */
+
+        .glow {
+
+            position: fixed;
+
+            width: 700px;
+            height: 700px;
+
+            background:
+                rgba(0,255,255,0.08);
+
+            border-radius: 50%;
+
+            filter: blur(120px);
+
+            animation:
+                pulse 4s infinite;
+
+            z-index: 0;
+        }
+
+        @keyframes pulse {
+
+            0% {
+
+                transform: scale(1);
+
+                opacity: 0.5;
+            }
+
+            50% {
+
+                transform: scale(1.1);
+
+                opacity: 1;
+            }
+
+            100% {
+
+                transform: scale(1);
+
+                opacity: 0.5;
+            }
+        }
+
+        /* MAIN */
+
+        .container {
+
+            position: relative;
+
+            width: 900px;
+
+            background:
+                rgba(5, 12, 22, 0.94);
+
+            border:
+                1px solid rgba(0,255,255,0.18);
+
+            border-radius: 24px;
+
+            padding: 40px;
+
+            box-shadow:
+                0 0 40px rgba(0,255,255,0.12);
+
+            z-index: 10;
+        }
+
+        /* TITLE */
+
+        h1 {
+
+            font-size: 50px;
+
+            color: #00f7ff;
+
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+
+            color: #9fb3c8;
+
+            font-size: 18px;
+
+            line-height: 1.8;
+
+            margin-bottom: 35px;
+        }
+
+        /* URL */
+
+        .url-box {
+
+            background:
+                rgba(0,0,0,0.35);
+
+            border:
+                1px solid rgba(255,255,255,0.08);
+
+            border-radius: 16px;
+
+            padding: 20px;
+
+            margin-bottom: 35px;
+
+            word-break: break-word;
+        }
+
+        .url-title {
+
+            color: #00eaff;
+
+            font-size: 14px;
+
+            margin-bottom: 10px;
+
+            font-weight: bold;
+        }
+
+        #scan-url {
+
+            color: white;
+
+            line-height: 1.7;
+        }
+
+        /* GRID */
+
+        .grid {
+
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 24px;
+        }
+
+        /* STEPS */
+
+        .steps {
+
+            margin-top: 10px;
+        }
+
+        .step {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 16px;
+
+            background:
+                rgba(255,255,255,0.03);
+
+            border:
+                1px solid rgba(255,255,255,0.05);
+
+            padding: 16px;
+
+            border-radius: 14px;
+
+            margin-bottom: 16px;
+
+            opacity: 0.4;
+
+            transition: 0.35s ease;
+        }
+
+        .step.active {
+
+            opacity: 1;
+
+            border:
+                1px solid rgba(0,255,255,0.45);
+
+            box-shadow:
+                0 0 20px rgba(0,255,255,0.15);
+        }
+
+        .step.done {
+
+            opacity: 1;
+
+            border:
+                1px solid rgba(0,255,120,0.35);
+        }
+
+        .icon {
+
+            font-size: 24px;
+        }
+
+        .step-text {
+
+            flex: 1;
+        }
+
+        .step-title {
+
+            font-weight: bold;
+
+            margin-bottom: 5px;
+        }
+
+        .step-desc {
+
+            color: #9fb3c8;
+
+            font-size: 14px;
+
+            line-height: 1.6;
+        }
+
+        /* LOADER */
+
+        .loader {
+
+            width: 18px;
+            height: 18px;
+
+            border:
+                3px solid rgba(255,255,255,0.2);
+
+            border-top:
+                3px solid #00f7ff;
+
+            border-radius: 50%;
+
+            animation:
+                spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+
+            100% {
+
+                transform: rotate(360deg);
+            }
+        }
+
+        /* LIVE AI CONSOLE */
+
+        .console {
+
+            background:
+                rgba(0,0,0,0.4);
+
+            border:
+                1px solid rgba(0,255,255,0.12);
+
+            border-radius: 16px;
+
+            padding: 20px;
+
+            height: 420px;
+
+            overflow-y: auto;
+
+            font-family:
+                Consolas,
+                monospace;
+        }
+
+        .console-title {
+
+            color: #00f7ff;
+
+            font-weight: bold;
+
+            margin-bottom: 18px;
+
+            font-size: 15px;
+
+            letter-spacing: 1px;
+        }
+
+        .log {
+
+            color: #cfefff;
+
+            margin-bottom: 14px;
+
+            line-height: 1.6;
+
+            animation:
+                fadeIn 0.3s ease;
+        }
+
+        .log.warning {
+
+            color: #ffcc66;
+        }
+
+        .log.danger {
+
+            color: #ff6b6b;
+        }
+
+        .log.success {
+
+            color: #00ff99;
+        }
+
+        @keyframes fadeIn {
+
+            from {
+
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* FOOTER */
+
+        .footer {
+
+            margin-top: 35px;
+
+            text-align: center;
+
+            color: #6f8195;
+
+            font-size: 14px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- GLOW -->
+
+    <div class="glow"></div>
+
+    <!-- MAIN -->
+
+    <div class="container">
+
+        <h1>
+
+            AI Threat Scan In Progress
+
+        </h1>
+
+        <div class="subtitle">
+
+            Our hybrid cybersecurity engine is analyzing
+            the webpage for phishing indicators,
+            semantic manipulation, malicious intent,
+            and threat intelligence matches.
+
+        </div>
+
+        <!-- URL -->
+
+        <div class="url-box">
+
+            <div class="url-title">
+
+                SCANNING TARGET
+
+            </div>
+
+            <div id="scan-url">
+
+                Loading...
+
+            </div>
+
+        </div>
+
+        <!-- GRID -->
+
+        <div class="grid">
+
+            <!-- LEFT -->
+
+            <div class="steps">
+
+                <div class="step" id="step1">
+
+                    <div class="icon">🌐</div>
+
+                    <div class="step-text">
+
+                        <div class="step-title">
+
+                            Domain Intelligence
+
+                        </div>
+
+                        <div class="step-desc">
+
+                            WHOIS, DNS, SSL, TLD,
+                            and reputation analysis.
+
+                        </div>
+
+                    </div>
+
+                    <div class="loader"></div>
+
+                </div>
+
+                <div class="step" id="step2">
+
+                    <div class="icon">🧠</div>
+
+                    <div class="step-text">
+
+                        <div class="step-title">
+
+                            Semantic AI Analysis
+
+                        </div>
+
+                        <div class="step-desc">
+
+                            Detecting phishing language,
+                            impersonation, and fraud patterns.
+
+                        </div>
+
+                    </div>
+
+                    <div class="loader"></div>
+
+                </div>
+
+                <div class="step" id="step3">
+
+                    <div class="icon">☣️</div>
+
+                    <div class="step-text">
+
+                        <div class="step-title">
+
+                            Threat Intelligence
+
+                        </div>
+
+                        <div class="step-desc">
+
+                            Checking malware feeds,
+                            blacklists, and attack signatures.
+
+                        </div>
+
+                    </div>
+
+                    <div class="loader"></div>
+
+                </div>
+
+                <div class="step" id="step4">
+
+                    <div class="icon">⚡</div>
+
+                    <div class="step-text">
+
+                        <div class="step-title">
+
+                            Hybrid AI Verdict
+
+                        </div>
+
+                        <div class="step-desc">
+
+                            Combining AI outputs
+                            into final threat classification.
+
+                        </div>
+
+                    </div>
+
+                    <div class="loader"></div>
+
+                </div>
+
+            </div>
+
+            <!-- RIGHT -->
+
+            <div class="console">
+
+                <div class="console-title">
+
+                    LIVE AI SCAN LOGS
+
+                </div>
+
+                <div id="console-logs">
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+
+        <div class="footer">
+
+            AI Phishing Shield •
+            Hybrid AI Cybersecurity Engine
+
+        </div>
+
+    </div>
+
+    <script src="scanning.js"></script>
+
+</body>
+
+</html>

@@ -1,303 +1,205 @@
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+const recentlyScanned =
+    new Set();
 
-    // ---------------------------------------------------
-    // RUN ONLY AFTER FULL LOAD
-    // ---------------------------------------------------
+// ---------------------------------------------------
+// MARK URL AS SCANNED
+// ---------------------------------------------------
 
-    if (changeInfo.status !== "complete" || !tab.url) {
-        return;
-    }
+function markAsScanned(url) {
 
-    // ---------------------------------------------------
-    // IF ALREADY BLOCK PAGE
-    // ---------------------------------------------------
+    recentlyScanned.add(url);
 
-    if (tab.url.includes("blocked.html")) {
+    setTimeout(() => {
 
-        chrome.action.setBadgeText({
+        recentlyScanned.delete(url);
 
-            text: "BAD",
-            tabId: tabId
-        });
+    }, 15000);
+}
 
-        chrome.action.setBadgeBackgroundColor({
+// ---------------------------------------------------
+// MAIN LISTENER
+// ---------------------------------------------------
 
-            color: "#dc2626",
-            tabId: tabId
-        });
+chrome.tabs.onUpdated.addListener(
 
-        return;
-    }
+    async (tabId, changeInfo, tab) => {
 
-    // ---------------------------------------------------
-    // IGNORE INTERNAL PAGES
-    // ---------------------------------------------------
+        // ---------------------------------------------------
+        // FULL PAGE LOAD ONLY
+        // ---------------------------------------------------
 
-    if (
-        tab.url.startsWith("chrome://") ||
-        tab.url.startsWith("chrome-extension://") ||
-        tab.url.startsWith("edge://")
-    ) {
-        return;
-    }
+        if (
 
-    // ---------------------------------------------------
-    // WHITELIST
-    // ---------------------------------------------------
+            changeInfo.status !== "complete" ||
+            !tab.url
 
-    const safeUrls = [
+        ) {
 
-        "http://localhost",
-        "http://127.0.0.1",
+            return;
+        }
 
-        "http://localhost:8501",
-        "http://127.0.0.1:8501",
+        // ---------------------------------------------------
+        // IGNORE INTERNAL PAGES
+        // ---------------------------------------------------
 
-        "https://ai-phishing-detection-system-y2dn.onrender.com"
-    ];
+        if (
 
-    for (const safe of safeUrls) {
+            tab.url.startsWith("chrome://") ||
+            tab.url.startsWith("chrome-extension://") ||
+            tab.url.startsWith("edge://") ||
+            tab.url.startsWith("about:")
 
-        if (tab.url.startsWith(safe)) {
+        ) {
+
+            return;
+        }
+
+        // ---------------------------------------------------
+        // IGNORE EXTENSION PAGES
+        // ---------------------------------------------------
+
+        if (
+
+            tab.url.includes("blocked.html") ||
+            tab.url.includes("scanning.html")
+
+        ) {
+
+            return;
+        }
+
+        // ---------------------------------------------------
+        // PREVENT SAFE REDIRECT LOOP
+        // ---------------------------------------------------
+
+        if (
+            recentlyScanned.has(tab.url)
+        ) {
+
+            console.log(
+                "Skipping recently scanned URL:",
+                tab.url
+            );
 
             chrome.action.setBadgeText({
 
                 text: "SAFE",
-                tabId: tabId
+                tabId
             });
 
             chrome.action.setBadgeBackgroundColor({
 
                 color: "#16a34a",
-                tabId: tabId
+                tabId
             });
 
             return;
         }
-    }
-
-    try {
-
-        console.log("Scanning:", tab.url);
 
         // ---------------------------------------------------
-        // CACHE KEY
+        // SAFE WHITELIST
         // ---------------------------------------------------
 
-        const cacheKey = `scan_${tab.url}`;
+        const safeUrls = [
 
-        // ---------------------------------------------------
-        // CHECK CACHE
-        // ---------------------------------------------------
+            "http://localhost",
+            "http://127.0.0.1",
 
-        const cache =
-            await chrome.storage.local.get([cacheKey]);
+            "http://localhost:8501",
+            "http://127.0.0.1:8501",
 
-        // ---------------------------------------------------
-        // CACHE HIT
-        // ---------------------------------------------------
+            "https://google.com",
+            "https://github.com",
+            "https://openai.com",
 
-        if (cache[cacheKey]) {
+            "https://ai-phishing-detection-system-y2dn.onrender.com"
+        ];
 
-            console.log("CACHE HIT");
+        for (const safe of safeUrls) {
 
-            const data = cache[cacheKey];
-
-            // SAFE CACHE
-
-            if (data.prediction === "safe") {
+            if (tab.url.startsWith(safe)) {
 
                 chrome.action.setBadgeText({
 
                     text: "SAFE",
-                    tabId: tabId
+                    tabId
                 });
 
                 chrome.action.setBadgeBackgroundColor({
 
                     color: "#16a34a",
-                    tabId: tabId
+                    tabId
                 });
 
                 return;
             }
+        }
 
-            // MALICIOUS CACHE
+        try {
+
+            console.log(
+                "Launching AI Scan:",
+                tab.url
+            );
+
+            // ---------------------------------------------------
+            // MARK URL
+            // ---------------------------------------------------
+
+            markAsScanned(tab.url);
+
+            // ---------------------------------------------------
+            // BADGE
+            // ---------------------------------------------------
 
             chrome.action.setBadgeText({
 
-                text: "BAD",
-                tabId: tabId
+                text: "...",
+                tabId
             });
 
             chrome.action.setBadgeBackgroundColor({
 
-                color: "#dc2626",
-                tabId: tabId
+                color: "#2563eb",
+                tabId
             });
 
-            // BLOCK PAGE
+            // ---------------------------------------------------
+            // OPEN SCANNING PAGE
+            // ---------------------------------------------------
 
-            const blockedUrl =
+            const scanPage =
+
                 chrome.runtime.getURL(
-                    `blocked.html?url=${encodeURIComponent(tab.url)}`
-                    + `&risk=${encodeURIComponent(data.risk_level)}`
-                    + `&score=${encodeURIComponent(data.risk_score)}`
-                    + `&confidence=${encodeURIComponent(data.confidence)}`
+
+                    `scanning.html?url=${encodeURIComponent(tab.url)}`
                 );
 
             await chrome.tabs.update(tabId, {
 
-                url: blockedUrl
+                url: scanPage
             });
 
-            return;
         }
 
-        // ---------------------------------------------------
-        // CACHE MISS
-        // ---------------------------------------------------
+        catch (error) {
 
-        console.log("CACHE MISS");
-
-        // ---------------------------------------------------
-        // API CALL
-        // ---------------------------------------------------
-
-        const apiUrl =
-            `https://ai-phishing-detection-system-y2dn.onrender.com/predict?url=${encodeURIComponent(tab.url)}`;
-
-        const response = await fetch(apiUrl, {
-
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
-            }
-        });
-
-        // ---------------------------------------------------
-        // BACKEND ERROR
-        // ---------------------------------------------------
-
-        if (!response.ok) {
-
-            throw new Error("Backend failed");
-        }
-
-        // ---------------------------------------------------
-        // JSON RESPONSE
-        // ---------------------------------------------------
-
-        const data = await response.json();
-
-        console.log("Backend Response:", data);
-
-        // ---------------------------------------------------
-        // SAVE CACHE
-        // ---------------------------------------------------
-
-        await chrome.storage.local.set({
-
-            [cacheKey]: data
-        });
-
-        console.log("Saved to cache");
-
-        // ---------------------------------------------------
-        // SAVE HISTORY
-        // ---------------------------------------------------
-
-        const historyResult =
-            await chrome.storage.local.get(["phishingHistory"]);
-
-        const history =
-            historyResult.phishingHistory || [];
-
-        history.unshift({
-
-            url: tab.url,
-
-            score: data.risk_score,
-
-            prediction: data.prediction,
-
-            time: new Date().toLocaleString()
-        });
-
-        await chrome.storage.local.set({
-
-            phishingHistory: history.slice(0, 20)
-        });
-
-        // ---------------------------------------------------
-        // SAFE RESULT
-        // ---------------------------------------------------
-
-        if (data.prediction === "safe") {
+            console.error(
+                "Scanner Error:",
+                error
+            );
 
             chrome.action.setBadgeText({
 
-                text: "SAFE",
-                tabId: tabId
+                text: "ERR",
+                tabId
             });
 
             chrome.action.setBadgeBackgroundColor({
 
-                color: "#16a34a",
-                tabId: tabId
+                color: "#f59e0b",
+                tabId
             });
-
-            return;
         }
-
-        // ---------------------------------------------------
-        // MALICIOUS RESULT
-        // ---------------------------------------------------
-
-        chrome.action.setBadgeText({
-
-            text: "BAD",
-            tabId: tabId
-        });
-
-        chrome.action.setBadgeBackgroundColor({
-
-            color: "#dc2626",
-            tabId: tabId
-        });
-
-        // ---------------------------------------------------
-        // REDIRECT TO BLOCK PAGE
-        // ---------------------------------------------------
-
-        const blockedUrl =
-            chrome.runtime.getURL(
-                `blocked.html?url=${encodeURIComponent(tab.url)}`
-                + `&risk=${encodeURIComponent(data.risk_level)}`
-                + `&score=${encodeURIComponent(data.risk_score)}`
-                + `&confidence=${encodeURIComponent(data.confidence)}`
-            );
-
-        await chrome.tabs.update(tabId, {
-
-            url: blockedUrl
-        });
-
-    } catch (error) {
-
-        console.error("Scanner Error:", error);
-
-        chrome.action.setBadgeText({
-
-            text: "ERR",
-            tabId: tabId
-        });
-
-        chrome.action.setBadgeBackgroundColor({
-
-            color: "#f59e0b",
-            tabId: tabId
-        });
     }
-});
+);

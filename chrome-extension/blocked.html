@@ -1,113 +1,495 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 
-    <title>Blocked - AI Phishing Shield</title>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+
+        Threat Blocked • AI Phishing Shield
+
+    </title>
 
     <style>
 
+        * {
+
+            margin: 0;
+            padding: 0;
+
+            box-sizing: border-box;
+        }
+
+        html {
+
+            scroll-behavior: smooth;
+        }
+
         body {
 
-            background-color: #0d1117;
+            background:
+                radial-gradient(
+                    circle at top,
+                    #101b2d,
+                    #050b15 55%
+                );
+
             color: white;
 
-            font-family: Arial, sans-serif;
+            font-family:
+                Inter,
+                Arial,
+                sans-serif;
+
+            min-height: 100vh;
+
+            overflow-y: auto;
+            overflow-x: hidden;
 
             display: flex;
 
             justify-content: center;
-            align-items: center;
 
-            height: 100vh;
+            align-items: flex-start;
 
-            margin: 0;
+            padding: 40px 0;
         }
+
+        /* BACKGROUND GLOW */
+
+        .bg-glow {
+
+            position: fixed;
+
+            top: 50%;
+            left: 50%;
+
+            transform:
+                translate(-50%, -50%);
+
+            width: 700px;
+            height: 700px;
+
+            background:
+                rgba(255, 0, 0, 0.12);
+
+            border-radius: 50%;
+
+            filter: blur(120px);
+
+            animation: pulse 4s infinite;
+
+            z-index: 0;
+        }
+
+        @keyframes pulse {
+
+            0% {
+
+                transform:
+                    translate(-50%, -50%)
+                    scale(1);
+
+                opacity: 0.6;
+            }
+
+            50% {
+
+                transform:
+                    translate(-50%, -50%)
+                    scale(1.08);
+
+                opacity: 1;
+            }
+
+            100% {
+
+                transform:
+                    translate(-50%, -50%)
+                    scale(1);
+
+                opacity: 0.6;
+            }
+        }
+
+        /* MAIN CONTAINER */
 
         .container {
 
-            background: #161b22;
+            position: relative;
 
-            border: 2px solid red;
+            width: 900px;
 
-            border-radius: 15px;
+            max-width: 95%;
+
+            background:
+                rgba(12, 18, 30, 0.92);
+
+            backdrop-filter: blur(12px);
+
+            border:
+                1px solid rgba(255, 0, 0, 0.35);
+
+            border-radius: 24px;
+
+            box-shadow:
+                0 0 35px rgba(255, 0, 0, 0.35);
 
             padding: 40px;
 
-            width: 700px;
-
-            box-shadow: 0 0 25px red;
+            z-index: 10;
         }
+
+        /* HEADER */
+
+        .top {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 20px;
+
+            flex-wrap: wrap;
+
+            margin-bottom: 30px;
+        }
+
+        .logo {
+
+            font-size: 30px;
+
+            font-weight: 800;
+
+            color: #00f7ff;
+
+            letter-spacing: 1px;
+        }
+
+        .status {
+
+            background:
+                rgba(255, 0, 0, 0.15);
+
+            border:
+                1px solid red;
+
+            color: #ff5b5b;
+
+            padding: 10px 18px;
+
+            border-radius: 50px;
+
+            font-weight: bold;
+        }
+
+        /* TITLE */
 
         h1 {
 
-            color: red;
+            font-size: 58px;
 
-            font-size: 42px;
+            color: #ff2d2d;
 
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+
+            line-height: 1.1;
+
+            text-shadow:
+                0 0 20px rgba(255, 0, 0, 0.7);
         }
 
-        .danger {
+        .subtitle {
 
             font-size: 22px;
 
-            color: orange;
+            color: #ffbf66;
 
-            margin-bottom: 25px;
+            margin-bottom: 35px;
+
+            line-height: 1.6;
         }
 
-        .info {
+        /* GRID */
 
-            margin-top: 20px;
+        .grid {
 
-            padding: 15px;
+            display: grid;
 
-            background: #0d1117;
+            grid-template-columns: 1fr 1fr;
 
-            border-radius: 10px;
+            gap: 22px;
 
-            word-wrap: break-word;
+            margin-bottom: 28px;
         }
 
-        .label {
+        /* CARD */
 
-            color: cyan;
+        .card {
 
-            font-weight: bold;
+            background:
+                rgba(5, 12, 22, 0.95);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.08);
+
+            border-radius: 18px;
+
+            padding: 24px;
         }
 
-        .score {
+        .card-title {
 
-            color: red;
+            color: #00eaff;
 
-            font-size: 28px;
+            font-size: 15px;
 
-            font-weight: bold;
+            font-weight: 700;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1px;
+
+            margin-bottom: 16px;
         }
 
-        button {
+        /* URL */
 
-            margin-top: 30px;
+        #blocked-url {
 
-            background: red;
-
-            border: none;
-
-            padding: 15px 25px;
+            word-break: break-word;
 
             color: white;
 
             font-size: 18px;
 
-            border-radius: 10px;
-
-            cursor: pointer;
+            line-height: 1.7;
         }
 
-        button:hover {
+        /* SCORE */
 
-            background: darkred;
+        .risk-score {
+
+            font-size: 72px;
+
+            color: #ff2d2d;
+
+            font-weight: 800;
+
+            line-height: 1;
+        }
+
+        .risk-label {
+
+            margin-top: 10px;
+
+            font-size: 18px;
+
+            color: #ffbf66;
+        }
+
+        /* META */
+
+        .meta {
+
+            margin-top: 16px;
+
+            line-height: 2;
+        }
+
+        .meta span {
+
+            color: #00f7ff;
+
+            font-weight: 700;
+        }
+
+        /* REASONS */
+
+        .reasons {
+
+            margin-top: 12px;
+
+            max-height: 320px;
+
+            overflow-y: auto;
+
+            padding-right: 8px;
+        }
+
+        .reason-item {
+
+            background:
+                rgba(255, 0, 0, 0.08);
+
+            border:
+                1px solid rgba(255, 0, 0, 0.15);
+
+            padding: 12px 14px;
+
+            border-radius: 12px;
+
+            margin-bottom: 12px;
+
+            color: #ffdede;
+
+            line-height: 1.6;
+        }
+
+        /* EDUCATION */
+
+        .education {
+
+            margin-top: 24px;
+
+            background:
+                rgba(0, 247, 255, 0.06);
+
+            border:
+                1px solid rgba(0, 247, 255, 0.2);
+
+            border-radius: 18px;
+
+            padding: 24px;
+        }
+
+        .education h2 {
+
+            color: #00f7ff;
+
+            margin-bottom: 12px;
+
+            font-size: 24px;
+        }
+
+        .education p {
+
+            color: #cbd5e1;
+
+            line-height: 1.9;
+
+            font-size: 16px;
+        }
+
+        /* BUTTONS */
+
+        .buttons {
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 18px;
+
+            margin-top: 35px;
+        }
+
+        button {
+
+            border: none;
+
+            padding: 16px 28px;
+
+            font-size: 17px;
+
+            border-radius: 14px;
+
+            cursor: pointer;
+
+            transition: 0.25s ease;
+        }
+
+        .safe-btn {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #ff2d2d,
+                    #b30000
+                );
+
+            color: white;
+
+            font-weight: bold;
+
+            box-shadow:
+                0 0 20px rgba(255, 0, 0, 0.35);
+        }
+
+        .safe-btn:hover {
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 0 30px rgba(255, 0, 0, 0.55);
+        }
+
+        .proceed-btn {
+
+            background:
+                rgba(255,255,255,0.08);
+
+            color: white;
+
+            border:
+                1px solid rgba(255,255,255,0.15);
+        }
+
+        .proceed-btn:hover {
+
+            background:
+                rgba(255,255,255,0.12);
+        }
+
+        /* FOOTER */
+
+        .footer {
+
+            margin-top: 30px;
+
+            color: #7c8ba1;
+
+            font-size: 14px;
+
+            text-align: center;
+        }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 900px) {
+
+            .grid {
+
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+
+                font-size: 42px;
+            }
+
+            .subtitle {
+
+                font-size: 18px;
+            }
+
+            .risk-score {
+
+                font-size: 56px;
+            }
+
+            .container {
+
+                padding: 28px;
+            }
         }
 
     </style>
@@ -116,67 +498,183 @@
 
 <body>
 
+    <!-- BACKGROUND GLOW -->
+
+    <div class="bg-glow"></div>
+
+    <!-- MAIN CONTAINER -->
+
     <div class="container">
 
-        <h1>⚠ WEBSITE BLOCKED</h1>
+        <!-- TOP -->
 
-        <div class="danger">
+        <div class="top">
 
-            AI Phishing Shield detected this website as dangerous.
+            <div class="logo">
 
-        </div>
+                AI PHISHING SHIELD
 
-        <!-- URL INFO -->
+            </div>
 
-        <div class="info">
+            <div class="status">
 
-            <p>
+                THREAT BLOCKED
 
-                <span class="label">Blocked URL:</span>
-
-            </p>
-
-            <p id="blocked-url"></p>
+            </div>
 
         </div>
 
-        <!-- RISK INFO -->
+        <!-- TITLE -->
 
-        <div class="info">
+        <h1>
+
+            ⚠ DANGEROUS WEBSITE DETECTED
+
+        </h1>
+
+        <div class="subtitle">
+
+            Our Hybrid AI Security Engine detected phishing
+            behavior, malicious intent, or impersonation
+            attempts on this webpage.
+
+        </div>
+
+        <!-- GRID -->
+
+        <div class="grid">
+
+            <!-- URL -->
+
+            <div class="card">
+
+                <div class="card-title">
+
+                    Blocked URL
+
+                </div>
+
+                <div id="blocked-url"></div>
+
+            </div>
+
+            <!-- SCORE -->
+
+            <div class="card">
+
+                <div class="card-title">
+
+                    Threat Analysis
+
+                </div>
+
+                <div
+                    class="risk-score"
+                    id="risk-score"
+                >
+
+                    0
+
+                </div>
+
+                <div class="risk-label">
+
+                    Risk Level:
+                    <span id="risk-level"></span>
+
+                </div>
+
+                <div class="meta">
+
+                    <div>
+
+                        <span>AI Confidence:</span>
+
+                        <span id="confidence"></span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- AI REASONS -->
+
+        <div class="card">
+
+            <div class="card-title">
+
+                AI Threat Intelligence
+
+            </div>
+
+            <div
+                class="reasons"
+                id="reasons-list"
+            >
+
+            </div>
+
+        </div>
+
+        <!-- EDUCATION -->
+
+        <div class="education">
+
+            <h2>
+
+                Why Was This Website Blocked?
+
+            </h2>
 
             <p>
 
-                <span class="label">Risk Level:</span>
-
-                <span id="risk-level"></span>
-
-            </p>
-
-            <p>
-
-                <span class="label">Risk Score:</span>
-
-                <span class="score" id="risk-score"></span>
-
-            </p>
-
-            <p>
-
-                <span class="label">Confidence:</span>
-
-                <span id="confidence"></span>
+                Phishing websites attempt to steal passwords,
+                banking details, login credentials, or sensitive
+                information by impersonating trusted services.
+                Our AI engine identified multiple suspicious
+                indicators including semantic phishing patterns,
+                malicious URL structures, and threat intelligence
+                signals.
 
             </p>
 
         </div>
 
-        <!-- BUTTON -->
+        <!-- BUTTONS -->
 
-        <button id="back-button">
+        <div class="buttons">
 
-            Go Back To Safety
+            <button
+                class="safe-btn"
+                id="back-button"
+            >
 
-        </button>
+                Return To Safety
+
+            </button>
+
+            <button
+                class="proceed-btn"
+                id="proceed-button"
+            >
+
+                Proceed Anyway
+
+            </button>
+
+        </div>
+
+        <!-- FOOTER -->
+
+        <div class="footer">
+
+            Protected by AI Phishing Shield •
+            Hybrid AI Cybersecurity Engine
+
+        </div>
 
     </div>
 
