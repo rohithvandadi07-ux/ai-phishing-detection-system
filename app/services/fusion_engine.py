@@ -1,7 +1,7 @@
 import pickle
 
-from utils.distilbert_detector import (
-    bert_url_analysis
+from app.services.distilbert_engine import (
+    semantic_phishing_check
 )
 
 # ---------------------------------------------------
@@ -46,7 +46,7 @@ def fusion_predict(url, manual_features):
     # DISTILBERT ANALYSIS
     # ---------------------------------------------------
 
-    bert_result = bert_url_analysis(url)
+    bert_result = semantic_phishing_check(url)
 
     bert_prob = float(
         bert_result["confidence"]

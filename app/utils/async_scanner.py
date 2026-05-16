@@ -1,14 +1,21 @@
 import asyncio
 
-from utils.threat_intel import (
+from app.utils.threat_intel import (
     check_virustotal,
     check_phishtank
 )
 
-from utils.reputation import analyze_url_reputation
-from utils.domain_intel import analyze_domain_intelligence
-from utils.distilbert_detector import bert_url_analysis
+from app.utils.reputation import (
+    analyze_url_reputation
+)
 
+from app.utils.domain_intel import (
+    analyze_domain_intelligence
+)
+
+from app.services.distilbert_engine import (
+    semantic_phishing_check
+)
 
 # ---------------------------------------------------
 # ASYNC WRAPPERS
@@ -49,16 +56,18 @@ async def run_domain_intel(url):
 async def run_bert(url):
 
     return await asyncio.to_thread(
-        bert_url_analysis,
+        semantic_phishing_check,
         url
     )
-
 
 # ---------------------------------------------------
 # MAIN ASYNC SCAN ENGINE
 # ---------------------------------------------------
 
-async def async_scan(url, run_bert_model=True):
+async def async_scan(
+    url,
+    run_bert_model=True
+):
 
     tasks = [
 
@@ -69,7 +78,10 @@ async def async_scan(url, run_bert_model=True):
 
     ]
 
-    # optional BERT
+    # ---------------------------------------------------
+    # OPTIONAL DISTILBERT
+    # ---------------------------------------------------
+
     if run_bert_model:
 
         tasks.append(
@@ -81,11 +93,18 @@ async def async_scan(url, run_bert_model=True):
     output = {
 
         "virustotal": results[0],
+
         "phishtank": results[1],
+
         "reputation": results[2],
+
         "domain_intel": results[3]
 
     }
+
+    # ---------------------------------------------------
+    # OPTIONAL BERT OUTPUT
+    # ---------------------------------------------------
 
     if run_bert_model:
 
@@ -94,8 +113,11 @@ async def async_scan(url, run_bert_model=True):
     else:
 
         output["bert"] = {
+
             "score": 0,
+
             "reasons": []
+
         }
 
     return output

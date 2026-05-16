@@ -1,55 +1,48 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi import APIRouter
 import asyncio
+import time
 
 from urllib.parse import urlparse
 
-from utils.features import extract_features
-from utils.explain import explain_url
+from app.schemas.request_models import URLRequest
 
-from utils.cache import (
+from app.utils.features import extract_features
+
+from app.services.explain import explain_url
+
+from app.utils.cache import (
     get_cached_result,
     store_result
 )
 
-from utils.async_scanner import async_scan
+from app.utils.async_scanner import async_scan
 
-from utils.database import (
-    initialize_database,
+from app.database.database import (
     log_detection
 )
 
-from utils.fusion_engine import fusion_predict
-
-from utils.whois_intel import analyze_domain
-
-# ---------------------------------------------------
-# FASTAPI INIT
-# ---------------------------------------------------
-
-app = FastAPI()
-
-# ---------------------------------------------------
-# INITIALIZE SQLITE DATABASE
-# ---------------------------------------------------
-
-initialize_database()
-
-# ---------------------------------------------------
-# CORS FIX FOR CHROME EXTENSION
-# ---------------------------------------------------
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+from app.services.fusion_engine import (
+    fusion_predict
 )
 
+from app.utils.whois_intel import (
+    analyze_domain
+)
+
+from app.services.distilbert_engine import (
+    semantic_phishing_check
+)
+
+from app.core.logger import logger
+
 # ---------------------------------------------------
-# TRUSTED SAFE DOMAINS
+# ROUTER
+# ---------------------------------------------------
+
+router = APIRouter()
+
+# ---------------------------------------------------
+# SAFE DOMAINS
 # ---------------------------------------------------
 
 SAFE_DOMAINS = {
@@ -66,29 +59,20 @@ SAFE_DOMAINS = {
 }
 
 # ---------------------------------------------------
-# HOME ROUTE
+# PREDICT ROUTE
 # ---------------------------------------------------
 
-@app.get("/")
-def home():
+@router.post("/predict")
 
-    return {
+def predict(request: URLRequest):
 
-        "message": "AI Phishing Shield Hybrid AI API Running"
+    start_time = time.time()
 
-    }
-
-# ---------------------------------------------------
-# MAIN PREDICTION ROUTE
-# ---------------------------------------------------
-
-@app.api_route(
-    "/predict",
-    methods=["GET", "POST", "OPTIONS"]
-)
-def predict(url: str):
+    url = request.url
 
     try:
+
+        logger.info(f"Scanning URL: {url}")
 
         # ---------------------------------------------------
         # CACHE CHECK
@@ -97,6 +81,9 @@ def predict(url: str):
         cached = get_cached_result(url)
 
         if cached:
+
+            cached["cached"] = True
+
             return cached
 
         # ---------------------------------------------------
@@ -112,7 +99,7 @@ def predict(url: str):
             hostname = hostname[4:]
 
         # ---------------------------------------------------
-        # SAFE DOMAIN WHITELIST
+        # SAFE WHITELIST
         # ---------------------------------------------------
 
         if hostname in SAFE_DOMAINS:
@@ -135,21 +122,6 @@ def predict(url: str):
 
             }
 
-            store_result(url, result)
-
-            log_detection(
-
-                url=url,
-
-                prediction="safe",
-
-                risk_score=0,
-
-                risk_level="SAFE",
-
-                confidence=1.0
-            )
-
             return result
 
         # ---------------------------------------------------
@@ -159,12 +131,14 @@ def predict(url: str):
         feat = extract_features(url)
 
         # ---------------------------------------------------
-        # HYBRID AI ENGINE
+        # HYBRID ENGINE
         # ---------------------------------------------------
 
         fusion_result = fusion_predict(
+
             url,
             feat
+
         )
 
         prob = fusion_result["probability"]
@@ -174,7 +148,19 @@ def predict(url: str):
         rf_prob = fusion_result["rf_prob"]
 
         # ---------------------------------------------------
-        # INITIAL EXPLANATIONS
+        # DISTILBERT
+        # ---------------------------------------------------
+
+        semantic_result = semantic_phishing_check(url)
+
+        semantic_score = semantic_result["score"]
+
+        semantic_confidence = semantic_result["confidence"]
+
+        semantic_reasons = semantic_result["reasons"]
+
+        # ---------------------------------------------------
+        # EXPLANATIONS
         # ---------------------------------------------------
 
         reasons = list(
@@ -183,49 +169,29 @@ def predict(url: str):
 
         )
 
-        # ---------------------------------------------------
-        # AI MODEL INDICATORS
-        # ---------------------------------------------------
+        reasons.extend(
 
-        if lgb_prob > 0.7:
+            semantic_reasons
 
-            reasons.append(
-
-                "LightGBM detected phishing patterns"
-
-            )
-
-        if rf_prob > 0.7:
-
-            reasons.append(
-
-                "Random Forest detected malicious behavior"
-
-            )
-
-        if prob > 0.85:
-
-            reasons.append(
-
-                "Hybrid AI engine flagged high-risk phishing indicators"
-
-            )
+        )
 
         # ---------------------------------------------------
-        # ASYNC SCANNING ENGINE
+        # ASYNC SCAN
         # ---------------------------------------------------
 
         scan_results = asyncio.run(
 
             async_scan(
+
                 url,
                 run_bert_model=False
+
             )
 
         )
 
         # ---------------------------------------------------
-        # VIRUSTOTAL
+        # VT
         # ---------------------------------------------------
 
         vt_result = scan_results["virustotal"]
@@ -239,119 +205,17 @@ def predict(url: str):
             )
 
         # ---------------------------------------------------
-        # PHISHTANK
+        # FINAL SCORE
         # ---------------------------------------------------
 
-        pt_result = scan_results["phishtank"]
-
-        if pt_result["malicious"]:
-
-            reasons.append(
-
-                "Flagged by PhishTank database"
-
-            )
-
-        # ---------------------------------------------------
-        # REPUTATION ENGINE
-        # ---------------------------------------------------
-
-        reputation_result = scan_results["reputation"]
-
-        reasons.extend(
-
-            reputation_result["indicators"]
-
-        )
-
-        # ---------------------------------------------------
-        # DOMAIN INTELLIGENCE
-        # ---------------------------------------------------
-
-        domain_result = scan_results["domain_intel"]
-
-        reasons.extend(
-
-            domain_result["indicators"]
-
-        )
-
-        # ---------------------------------------------------
-        # WHOIS INTELLIGENCE
-        # ---------------------------------------------------
-
-        whois_result = analyze_domain(url)
-
-        reasons.extend(
-
-            whois_result["indicators"]
-
-        )
-
-        # ---------------------------------------------------
-        # REMOVE DUPLICATES
-        # ---------------------------------------------------
-
-        reasons = list(set(reasons))
-
-        # ---------------------------------------------------
-        # FINAL RISK SCORE
-        # ---------------------------------------------------
-
-        risk_score = 0
-
-        # Hybrid AI contribution
-
-        risk_score += int(prob * 45)
-
-        # Explanation contribution
-
-        risk_score += len(reasons) * 4
-
-        # Reputation contribution
-
-        risk_score += reputation_result["score"]
-
-        # Domain intelligence contribution
-
-        risk_score += domain_result["score"]
-
-        # WHOIS contribution
-
-        risk_score += whois_result["score"]
-
-        # VirusTotal contribution
-
-        if vt_result["malicious"]:
-
-            risk_score += 25
-
-        # PhishTank contribution
-
-        if pt_result["malicious"]:
-
-            risk_score += 20
-
-        # URL length contribution
-
-        if len(url) > 75:
-
-            reasons.append(
-
-                "Very long URL"
-
-            )
-
-            risk_score += 10
-
-        # Clamp
+        risk_score = int(prob * 100)
 
         if risk_score > 100:
 
             risk_score = 100
 
         # ---------------------------------------------------
-        # RISK LEVELS
+        # RISK LEVEL
         # ---------------------------------------------------
 
         if risk_score >= 80:
@@ -385,6 +249,17 @@ def predict(url: str):
         )
 
         # ---------------------------------------------------
+        # INFERENCE TIME
+        # ---------------------------------------------------
+
+        inference_time = round(
+
+            time.time() - start_time,
+            4
+
+        )
+
+        # ---------------------------------------------------
         # FINAL RESPONSE
         # ---------------------------------------------------
 
@@ -398,28 +273,45 @@ def predict(url: str):
 
             "risk_level": risk_level,
 
+            "inference_time": inference_time,
+
             "reasons": reasons,
 
             "ai_engine": {
 
-                "lgb_probability": round(lgb_prob, 4),
+                "lgb_probability":
 
-                "rf_probability": round(rf_prob, 4),
+                    round(lgb_prob, 4),
 
-                "hybrid_probability": round(prob, 4)
+                "rf_probability":
+
+                    round(rf_prob, 4),
+
+                "semantic_score":
+
+                    semantic_score,
+
+                "semantic_confidence":
+
+                    semantic_confidence
 
             }
 
         }
 
         # ---------------------------------------------------
-        # STORE CACHE
+        # CACHE STORE
         # ---------------------------------------------------
 
-        store_result(url, result)
+        store_result(
+
+            url,
+            result
+
+        )
 
         # ---------------------------------------------------
-        # SQLITE LOGGING
+        # DATABASE LOGGING
         # ---------------------------------------------------
 
         log_detection(
@@ -436,9 +328,17 @@ def predict(url: str):
 
         )
 
+        logger.info(
+
+            f"{url} -> {prediction}"
+
+        )
+
         return result
 
     except Exception as e:
+
+        logger.error(str(e))
 
         return {
 
