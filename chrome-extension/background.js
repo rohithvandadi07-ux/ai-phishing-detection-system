@@ -2,6 +2,13 @@ const recentlyScanned =
     new Set();
 
 // ---------------------------------------------------
+// LOCAL BACKEND API
+// ---------------------------------------------------
+
+const API_BASE_URL =
+    "http://localhost:8080";
+
+// ---------------------------------------------------
 // MARK URL AS SCANNED
 // ---------------------------------------------------
 
@@ -61,7 +68,8 @@ chrome.tabs.onUpdated.addListener(
         if (
 
             tab.url.includes("blocked.html") ||
-            tab.url.includes("scanning.html")
+            tab.url.includes("scanning.html") ||
+            tab.url.includes("dashboard.html")
 
         ) {
 
@@ -105,14 +113,16 @@ chrome.tabs.onUpdated.addListener(
             "http://localhost",
             "http://127.0.0.1",
 
+            "http://localhost:8080",
+            "http://127.0.0.1:8080",
+
             "http://localhost:8501",
             "http://127.0.0.1:8501",
 
             "https://google.com",
             "https://github.com",
-            "https://openai.com",
+            "https://openai.com"
 
-            "https://ai-phishing-detection-system-y2dn.onrender.com"
         ];
 
         for (const safe of safeUrls) {
@@ -141,6 +151,22 @@ chrome.tabs.onUpdated.addListener(
                 "Launching AI Scan:",
                 tab.url
             );
+
+            // ---------------------------------------------------
+            // TEST BACKEND CONNECTION
+            // ---------------------------------------------------
+
+            const healthCheck =
+                await fetch(
+                    `${API_BASE_URL}/docs`
+                );
+
+            if (!healthCheck.ok) {
+
+                throw new Error(
+                    "Backend Offline"
+                );
+            }
 
             // ---------------------------------------------------
             // MARK URL
@@ -191,13 +217,13 @@ chrome.tabs.onUpdated.addListener(
 
             chrome.action.setBadgeText({
 
-                text: "ERR",
+                text: "OFF",
                 tabId
             });
 
             chrome.action.setBadgeBackgroundColor({
 
-                color: "#f59e0b",
+                color: "#dc2626",
                 tabId
             });
         }

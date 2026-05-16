@@ -22,6 +22,8 @@ from utils.database import (
 
 from utils.fusion_engine import fusion_predict
 
+from utils.whois_intel import analyze_domain
+
 # ---------------------------------------------------
 # FASTAPI INIT
 # ---------------------------------------------------
@@ -275,6 +277,18 @@ def predict(url: str):
         )
 
         # ---------------------------------------------------
+        # WHOIS INTELLIGENCE
+        # ---------------------------------------------------
+
+        whois_result = analyze_domain(url)
+
+        reasons.extend(
+
+            whois_result["indicators"]
+
+        )
+
+        # ---------------------------------------------------
         # REMOVE DUPLICATES
         # ---------------------------------------------------
 
@@ -301,6 +315,10 @@ def predict(url: str):
         # Domain intelligence contribution
 
         risk_score += domain_result["score"]
+
+        # WHOIS contribution
+
+        risk_score += whois_result["score"]
 
         # VirusTotal contribution
 

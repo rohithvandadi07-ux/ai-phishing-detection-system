@@ -3,6 +3,13 @@ const params = new URLSearchParams(
 );
 
 // ---------------------------------------------------
+// LOCAL BACKEND
+// ---------------------------------------------------
+
+const API_BASE_URL =
+    "http://localhost:8080";
+
+// ---------------------------------------------------
 // TARGET URL
 // ---------------------------------------------------
 
@@ -90,14 +97,14 @@ const scanLogs = [
 
     {
         text:
-            "[!] Credential harvesting patterns detected.",
+            "[!] Credential harvesting indicators detected.",
         type:
             "warning"
     },
 
     {
         text:
-            "[✓] URL structure heuristic analysis complete.",
+            "[✓] URL heuristic analysis complete.",
         type:
             "success"
     },
@@ -111,14 +118,14 @@ const scanLogs = [
 
     {
         text:
-            "[!] Suspicious impersonation indicators found.",
+            "[!] Suspicious impersonation patterns identified.",
         type:
             "warning"
     },
 
     {
         text:
-            "[✓] Malware signature comparison complete.",
+            "[✓] Malware signature analysis completed.",
         type:
             "success"
     },
@@ -149,14 +156,12 @@ function addLog(text, type = "") {
 
     logsContainer.appendChild(div);
 
-    // Auto-scroll
-
     logsContainer.scrollTop =
         logsContainer.scrollHeight;
 }
 
 // ---------------------------------------------------
-// START LIVE LOGS
+// START LOG STREAM
 // ---------------------------------------------------
 
 async function startLogs() {
@@ -178,7 +183,7 @@ async function startLogs() {
 
 async function runSteps() {
 
-    // Start logs in parallel
+    // Parallel logs
 
     startLogs();
 
@@ -187,17 +192,11 @@ async function runSteps() {
         const current =
             steps[i];
 
-        // Activate step
-
         current.classList.add(
             "active"
         );
 
-        // Wait
-
         await sleep(1400);
-
-        // Complete step
 
         current.classList.remove(
             "active"
@@ -206,8 +205,6 @@ async function runSteps() {
         current.classList.add(
             "done"
         );
-
-        // Loader to checkmark
 
         const loader =
             current.querySelector(
@@ -234,7 +231,7 @@ async function runSteps() {
 }
 
 // ---------------------------------------------------
-// FINAL AI BACKEND SCAN
+// FINAL AI SCAN
 // ---------------------------------------------------
 
 async function finalScan() {
@@ -243,13 +240,17 @@ async function finalScan() {
 
         addLog(
 
-            "[✓] Sending final URL to AI detection engine...",
+            "[✓] Connecting to local AI inference engine...",
             "success"
         );
 
+        // ---------------------------------------------------
+        // LOCAL API
+        // ---------------------------------------------------
+
         const apiUrl =
 
-            `https://ai-phishing-detection-system-y2dn.onrender.com/predict?url=${encodeURIComponent(targetUrl)}`;
+            `${API_BASE_URL}/predict?url=${encodeURIComponent(targetUrl)}`;
 
         const response =
             await fetch(apiUrl, {
@@ -264,7 +265,7 @@ async function finalScan() {
             });
 
         // ---------------------------------------------------
-        // API FAILED
+        // API ERROR
         // ---------------------------------------------------
 
         if (!response.ok) {
@@ -275,7 +276,7 @@ async function finalScan() {
         }
 
         // ---------------------------------------------------
-        // PARSE JSON
+        // PARSE RESULT
         // ---------------------------------------------------
 
         const data =
@@ -287,7 +288,7 @@ async function finalScan() {
         );
 
         // ---------------------------------------------------
-        // SAFE
+        // SAFE WEBSITE
         // ---------------------------------------------------
 
         if (
@@ -306,6 +307,12 @@ async function finalScan() {
                 "success"
             );
 
+            addLog(
+
+                "[✓] Redirecting to website...",
+                "success"
+            );
+
             await sleep(1200);
 
             window.location.replace(
@@ -316,7 +323,7 @@ async function finalScan() {
         }
 
         // ---------------------------------------------------
-        // MALICIOUS
+        // MALICIOUS WEBSITE
         // ---------------------------------------------------
 
         addLog(
@@ -327,11 +334,13 @@ async function finalScan() {
 
         addLog(
 
-            "[!] Blocking access to protect user.",
+            "[!] Initiating protective browser block...",
             "danger"
         );
 
-        // Encode reasons
+        // ---------------------------------------------------
+        // ENCODE REASONS
+        // ---------------------------------------------------
 
         const encodedReasons =
 
@@ -342,7 +351,9 @@ async function finalScan() {
                 )
             );
 
-        // Create block page URL
+        // ---------------------------------------------------
+        // BLOCK PAGE
+        // ---------------------------------------------------
 
         const blockedUrl =
 
@@ -359,8 +370,6 @@ async function finalScan() {
 
         await sleep(1600);
 
-        // Redirect
-
         window.location.replace(
             blockedUrl
         );
@@ -375,8 +384,14 @@ async function finalScan() {
 
         addLog(
 
-            "[!] AI scan engine failure detected.",
+            "[!] Local AI engine unreachable.",
             "danger"
+        );
+
+        addLog(
+
+            "[!] Ensure Docker backend is running.",
+            "warning"
         );
 
         addLog(
@@ -385,7 +400,7 @@ async function finalScan() {
             "warning"
         );
 
-        await sleep(1500);
+        await sleep(2000);
 
         window.location.replace(
             targetUrl
@@ -406,7 +421,7 @@ function sleep(ms) {
 }
 
 // ---------------------------------------------------
-// START SCAN
+// START ENGINE
 // ---------------------------------------------------
 
 runSteps();
