@@ -1,39 +1,97 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 import asyncio
 import time
 
 from urllib.parse import urlparse
 
+# ---------------------------------------------------
+# CONFIG
+# ---------------------------------------------------
+
+from app.core.config import settings
+
+# ---------------------------------------------------
+# CONSTANTS
+# ---------------------------------------------------
+
+from app.core.constants import *
+
+# ---------------------------------------------------
+# RATE LIMITER
+# ---------------------------------------------------
+
+from app.core.rate_limiter import limiter
+
+# ---------------------------------------------------
+# LOGGER
+# ---------------------------------------------------
+
+from app.core.logger import logger
+
+# ---------------------------------------------------
+# SCHEMAS
+# ---------------------------------------------------
+
 from app.schemas.request_models import URLRequest
+
+from app.schemas.response_models import (
+    PredictionResponse
+)
+
+# ---------------------------------------------------
+# FEATURE ENGINEERING
+# ---------------------------------------------------
 
 from app.utils.features import extract_features
 
+# ---------------------------------------------------
+# EXPLAINABILITY
+# ---------------------------------------------------
+
 from app.services.explain import explain_url
+
+# ---------------------------------------------------
+# CACHE
+# ---------------------------------------------------
 
 from app.utils.cache import (
     get_cached_result,
     store_result
 )
 
+# ---------------------------------------------------
+# ASYNC SCANNER
+# ---------------------------------------------------
+
 from app.utils.async_scanner import async_scan
+
+# ---------------------------------------------------
+# DATABASE
+# ---------------------------------------------------
 
 from app.database.database import (
     log_detection
 )
 
+# ---------------------------------------------------
+# AI ENGINES
+# ---------------------------------------------------
+
 from app.services.fusion_engine import (
     fusion_predict
-)
-
-from app.utils.whois_intel import (
-    analyze_domain
 )
 
 from app.services.distilbert_engine import (
     semantic_phishing_check
 )
 
-from app.core.logger import logger
+# ---------------------------------------------------
+# WHOIS
+# ---------------------------------------------------
+
+from app.utils.whois_intel import (
+    analyze_domain
+)
 
 # ---------------------------------------------------
 # ROUTER
@@ -42,37 +100,104 @@ from app.core.logger import logger
 router = APIRouter()
 
 # ---------------------------------------------------
-# SAFE DOMAINS
+# PREDICTION ROUTE
 # ---------------------------------------------------
 
-SAFE_DOMAINS = {
+@limiter.limit("20/minute")
 
-    "google.com",
-    "github.com",
-    "amazon.com",
-    "amazon.in",
-    "microsoft.com",
-    "apple.com",
-    "linkedin.com",
-    "stackoverflow.com"
+@router.post(
 
-}
+    "/predict",
 
-# ---------------------------------------------------
-# PREDICT ROUTE
-# ---------------------------------------------------
+    response_model=PredictionResponse,
 
-@router.post("/predict")
+    tags=["Prediction"]
 
-def predict(request: URLRequest):
+)
+
+def predict(
+
+    request: Request,
+
+    body: URLRequest
+
+):
 
     start_time = time.time()
 
-    url = request.url
+    # ---------------------------------------------------
+    # SANITIZE URL
+    # ---------------------------------------------------
+
+    url = body.url.strip()
 
     try:
 
         logger.info(f"Scanning URL: {url}")
+
+        # ---------------------------------------------------
+        # URL VALIDATION
+        # ---------------------------------------------------
+
+        if not (
+
+            url.startswith("http://")
+
+            or
+
+            url.startswith("https://")
+
+        ):
+
+            return {
+
+                "prediction": PREDICTION_ERROR,
+
+                "confidence": 0.0,
+
+                "risk_score": 0,
+
+                "risk_level": RISK_HIGH,
+
+                "inference_time": 0.0,
+
+                "reasons": [
+
+                    "Invalid URL format"
+
+                ],
+
+                "ai_engine": {}
+
+            }
+
+        # ---------------------------------------------------
+        # URL LENGTH VALIDATION
+        # ---------------------------------------------------
+
+        if len(url) > MAX_URL_LENGTH:
+
+            return {
+
+                "prediction": PREDICTION_ERROR,
+
+                "confidence": 0.0,
+
+                "risk_score": 0,
+
+                "risk_level": RISK_HIGH,
+
+                "inference_time": 0.0,
+
+                "reasons": [
+
+                    "URL exceeds maximum allowed length"
+
+                ],
+
+                "ai_engine": {}
+
+            }
 
         # ---------------------------------------------------
         # CACHE CHECK
@@ -99,26 +224,30 @@ def predict(request: URLRequest):
             hostname = hostname[4:]
 
         # ---------------------------------------------------
-        # SAFE WHITELIST
+        # SAFE DOMAIN WHITELIST
         # ---------------------------------------------------
 
-        if hostname in SAFE_DOMAINS:
+        if hostname in settings.SAFE_DOMAINS:
 
             result = {
 
-                "prediction": "safe",
+                "prediction": PREDICTION_SAFE,
 
                 "confidence": 1.0,
 
                 "risk_score": 0,
 
-                "risk_level": "SAFE",
+                "risk_level": RISK_SAFE,
+
+                "inference_time": 0.0,
 
                 "reasons": [
 
                     "Trusted domain whitelist"
 
-                ]
+                ],
+
+                "ai_engine": {}
 
             }
 
@@ -131,7 +260,7 @@ def predict(request: URLRequest):
         feat = extract_features(url)
 
         # ---------------------------------------------------
-        # HYBRID ENGINE
+        # HYBRID AI ENGINE
         # ---------------------------------------------------
 
         fusion_result = fusion_predict(
@@ -148,7 +277,7 @@ def predict(request: URLRequest):
         rf_prob = fusion_result["rf_prob"]
 
         # ---------------------------------------------------
-        # DISTILBERT
+        # DISTILBERT ENGINE
         # ---------------------------------------------------
 
         semantic_result = semantic_phishing_check(url)
@@ -160,7 +289,7 @@ def predict(request: URLRequest):
         semantic_reasons = semantic_result["reasons"]
 
         # ---------------------------------------------------
-        # EXPLANATIONS
+        # EXPLAINABILITY
         # ---------------------------------------------------
 
         reasons = list(
@@ -176,7 +305,19 @@ def predict(request: URLRequest):
         )
 
         # ---------------------------------------------------
-        # ASYNC SCAN
+        # WHOIS ANALYSIS
+        # ---------------------------------------------------
+
+        whois_result = analyze_domain(url)
+
+        reasons.extend(
+
+            whois_result["indicators"]
+
+        )
+
+        # ---------------------------------------------------
+        # ASYNC THREAT SCAN
         # ---------------------------------------------------
 
         scan_results = asyncio.run(
@@ -191,7 +332,7 @@ def predict(request: URLRequest):
         )
 
         # ---------------------------------------------------
-        # VT
+        # VIRUSTOTAL
         # ---------------------------------------------------
 
         vt_result = scan_results["virustotal"]
@@ -205,10 +346,24 @@ def predict(request: URLRequest):
             )
 
         # ---------------------------------------------------
-        # FINAL SCORE
+        # REMOVE DUPLICATES
+        # ---------------------------------------------------
+
+        reasons = list(
+
+            set(reasons)
+
+        )
+
+        # ---------------------------------------------------
+        # RISK SCORE
         # ---------------------------------------------------
 
         risk_score = int(prob * 100)
+
+        if vt_result["malicious"]:
+
+            risk_score += 20
 
         if risk_score > 100:
 
@@ -218,21 +373,21 @@ def predict(request: URLRequest):
         # RISK LEVEL
         # ---------------------------------------------------
 
-        if risk_score >= 80:
+        if risk_score >= CRITICAL_THRESHOLD:
 
-            risk_level = "CRITICAL"
+            risk_level = RISK_CRITICAL
 
-        elif risk_score >= 60:
+        elif risk_score >= HIGH_THRESHOLD:
 
-            risk_level = "HIGH"
+            risk_level = RISK_HIGH
 
-        elif risk_score >= 35:
+        elif risk_score >= SAFE_THRESHOLD:
 
-            risk_level = "MEDIUM"
+            risk_level = RISK_MEDIUM
 
         else:
 
-            risk_level = "SAFE"
+            risk_level = RISK_SAFE
 
         # ---------------------------------------------------
         # FINAL PREDICTION
@@ -240,11 +395,11 @@ def predict(request: URLRequest):
 
         prediction = (
 
-            "malicious"
+            PREDICTION_MALICIOUS
 
-            if risk_level != "SAFE"
+            if risk_level != RISK_SAFE
 
-            else "safe"
+            else PREDICTION_SAFE
 
         )
 
@@ -286,6 +441,10 @@ def predict(request: URLRequest):
                 "rf_probability":
 
                     round(rf_prob, 4),
+
+                "hybrid_probability":
+
+                    round(prob, 4),
 
                 "semantic_score":
 
@@ -342,18 +501,22 @@ def predict(request: URLRequest):
 
         return {
 
-            "prediction": "error",
+            "prediction": PREDICTION_ERROR,
 
             "confidence": 0.0,
 
             "risk_score": 0,
 
-            "risk_level": "UNKNOWN",
+            "risk_level": RISK_HIGH,
+
+            "inference_time": 0.0,
 
             "reasons": [
 
                 str(e)
 
-            ]
+            ],
+
+            "ai_engine": {}
 
         }
