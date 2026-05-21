@@ -125,3 +125,8 @@ websockets==12.0
 
 wheel==0.44.0
 slowapi
+
+passlib[bcrypt]
+python-jose[cryptography]
+email-validator
+bcrypt==4.1.2

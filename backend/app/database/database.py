@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 
 # ---------------------------------------------------
 # CORE CONFIG
@@ -58,7 +58,9 @@ engine = create_engine(
 
     pool_pre_ping=True,
 
-    pool_recycle=300
+    pool_recycle=300,
+
+    echo=False
 
 )
 
@@ -81,6 +83,14 @@ SessionLocal = sessionmaker(
 # ---------------------------------------------------
 
 Base = declarative_base()
+
+# ---------------------------------------------------
+# IMPORT MODELS
+# IMPORTANT:
+# This MUST stay below Base declaration
+# ---------------------------------------------------
+
+from app.database import models
 
 # ---------------------------------------------------
 # DATABASE SESSION DEPENDENCY

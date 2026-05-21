@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # ---------------------------------------------------
@@ -39,6 +39,7 @@ from app.database.database import initialize_database
 
 from app.routes.health import router as health_router
 from app.routes.predict import router as predict_router
+from app.routes.auth import router as auth_router
 
 # ---------------------------------------------------
 # GLOBAL ERROR HANDLER
@@ -64,7 +65,11 @@ app = FastAPI(
 
     title=settings.APP_NAME,
 
-    version=settings.APP_VERSION
+    version=settings.APP_VERSION,
+
+    docs_url="/docs",
+
+    redoc_url="/redoc"
 
 )
 
@@ -106,10 +111,14 @@ app.add_exception_handler(
 
 initialize_database()
 
-logger.info("Database initialized")
+logger.info(
+
+    "Database initialized successfully"
+
+)
 
 # ---------------------------------------------------
-# SECURITY HEADERS MIDDLEWARE
+# SECURITY HEADERS
 # ---------------------------------------------------
 
 app.add_middleware(
@@ -140,24 +149,84 @@ app.add_middleware(
 # INCLUDE ROUTES
 # ---------------------------------------------------
 
-app.include_router(health_router)
+app.include_router(
 
-app.include_router(predict_router)
+    health_router
+
+)
+
+app.include_router(
+
+    predict_router
+
+)
+
+app.include_router(
+
+    auth_router
+
+)
+
+# ---------------------------------------------------
+# STARTUP EVENT
+# ---------------------------------------------------
+
+@app.on_event("startup")
+
+async def startup_event():
+
+    logger.info(
+
+        f"{settings.APP_NAME} started"
+
+    )
+
+# ---------------------------------------------------
+# SHUTDOWN EVENT
+# ---------------------------------------------------
+
+@app.on_event("shutdown")
+
+async def shutdown_event():
+
+    logger.info(
+
+        f"{settings.APP_NAME} stopped"
+
+    )
 
 # ---------------------------------------------------
 # ROOT ROUTE
 # ---------------------------------------------------
 
-@app.get("/")
+@app.get(
+
+    "/",
+
+    tags=["Root"]
+
+)
 
 def home():
 
-    logger.info("Root endpoint accessed")
+    logger.info(
+
+        "Root endpoint accessed"
+
+    )
 
     return {
 
         "message":
 
-        f"{settings.APP_NAME} Running"
+            f"{settings.APP_NAME} Running",
+
+        "version":
+
+            settings.APP_VERSION,
+
+        "docs":
+
+            "/docs"
 
     }
