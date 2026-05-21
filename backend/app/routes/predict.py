@@ -1,8 +1,13 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
+from fastapi import Request
+from fastapi import Depends
+
 import asyncio
 import time
 
 from urllib.parse import urlparse
+
+from sqlalchemy.orm import Session
 
 # ---------------------------------------------------
 # CONFIG
@@ -27,6 +32,28 @@ from app.core.rate_limiter import limiter
 # ---------------------------------------------------
 
 from app.core.logger import logger
+
+# ---------------------------------------------------
+# AUTH
+# ---------------------------------------------------
+
+from app.auth.dependencies import (
+    get_current_user
+)
+
+# ---------------------------------------------------
+# DATABASE
+# ---------------------------------------------------
+
+from app.database.database import (
+    get_db,
+    log_detection
+)
+
+from app.database.models import (
+    User,
+    ScanHistory
+)
 
 # ---------------------------------------------------
 # SCHEMAS
@@ -64,14 +91,6 @@ from app.utils.cache import (
 # ---------------------------------------------------
 
 from app.utils.async_scanner import async_scan
-
-# ---------------------------------------------------
-# DATABASE
-# ---------------------------------------------------
-
-from app.database.database import (
-    log_detection
-)
 
 # ---------------------------------------------------
 # AI ENGINES
@@ -119,7 +138,15 @@ def predict(
 
     request: Request,
 
-    body: URLRequest
+    body: URLRequest,
+
+    current_user: User = Depends(
+
+        get_current_user
+
+    ),
+
+    db: Session = Depends(get_db)
 
 ):
 
@@ -133,7 +160,11 @@ def predict(
 
     try:
 
-        logger.info(f"Scanning URL: {url}")
+        logger.info(
+
+            f"{current_user.email} scanning URL: {url}"
+
+        )
 
         # ---------------------------------------------------
         # URL VALIDATION
@@ -468,6 +499,36 @@ def predict(
             result
 
         )
+
+        # ---------------------------------------------------
+        # SAVE SCAN HISTORY
+        # ---------------------------------------------------
+
+        history = ScanHistory(
+
+            user_id=current_user.id,
+
+            url=url,
+
+            prediction=prediction,
+
+            risk_score=risk_score,
+
+            risk_level=risk_level,
+
+            confidence=round(prob, 4)
+
+        )
+
+        db.add(history)
+
+        # ---------------------------------------------------
+        # UPDATE USER SCAN COUNT
+        # ---------------------------------------------------
+
+        current_user.scans_used += 1
+
+        db.commit()
 
         # ---------------------------------------------------
         # DATABASE LOGGING
