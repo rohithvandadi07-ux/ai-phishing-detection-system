@@ -3,6 +3,8 @@ from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import status
 
+from fastapi.security import OAuth2PasswordRequestForm
+
 from sqlalchemy.orm import Session
 
 # ---------------------------------------------------
@@ -12,12 +14,26 @@ from sqlalchemy.orm import Session
 from app.database.database import get_db
 
 # ---------------------------------------------------
+# MODELS
+# ---------------------------------------------------
+
+from app.database.models import User
+
+# ---------------------------------------------------
 # AUTH SERVICE
 # ---------------------------------------------------
 
 from app.auth.auth_service import (
-    create_user,
-    login_user
+    create_user
+)
+
+# ---------------------------------------------------
+# SECURITY
+# ---------------------------------------------------
+
+from app.auth.security import (
+    verify_password,
+    create_access_token
 )
 
 # ---------------------------------------------------
@@ -25,8 +41,10 @@ from app.auth.auth_service import (
 # ---------------------------------------------------
 
 from app.schemas.request_models import (
-    UserSignupRequest,
-    UserLoginRequest,
+    UserSignupRequest
+)
+
+from app.schemas.response_models import (
     TokenResponse,
     UserResponse
 )
@@ -119,27 +137,23 @@ def signup(
 
 def login(
 
-    request: UserLoginRequest,
+    form_data: OAuth2PasswordRequestForm = Depends(),
 
     db: Session = Depends(get_db)
 
 ):
 
-    token_data = login_user(
+    user = db.query(User).filter(
 
-        db=db,
+        User.email == form_data.username
 
-        email=request.email,
+    ).first()
 
-        password=request.password
-
-    )
-
-    if not token_data:
+    if not user:
 
         logger.warning(
 
-            f"Failed login attempt: {request.email}"
+            f"Failed login attempt: {form_data.username}"
 
         )
 
@@ -151,10 +165,58 @@ def login(
 
         )
 
-    logger.info(
+    # ---------------------------------------------------
+    # PASSWORD VERIFICATION
+    # ---------------------------------------------------
 
-        f"Successful login: {request.email}"
+    if not verify_password(
+
+        form_data.password,
+
+        user.hashed_password
+
+    ):
+
+        logger.warning(
+
+            f"Invalid password attempt: {form_data.username}"
+
+        )
+
+        raise HTTPException(
+
+            status_code=status.HTTP_401_UNAUTHORIZED,
+
+            detail="Invalid email or password"
+
+        )
+
+    # ---------------------------------------------------
+    # CREATE JWT TOKEN
+    # ---------------------------------------------------
+
+    access_token = create_access_token(
+
+        data={
+
+            "sub": user.email,
+
+            "user_id": user.id
+
+        }
 
     )
 
-    return token_data
+    logger.info(
+
+        f"Successful login: {user.email}"
+
+    )
+
+    return {
+
+        "access_token": access_token,
+
+        "token_type": "bearer"
+
+    }

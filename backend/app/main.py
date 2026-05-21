@@ -40,6 +40,7 @@ from app.database.database import initialize_database
 from app.routes.health import router as health_router
 from app.routes.predict import router as predict_router
 from app.routes.auth import router as auth_router
+from app.routes.user import router as user_router
 
 # ---------------------------------------------------
 # GLOBAL ERROR HANDLER
@@ -167,6 +168,12 @@ app.include_router(
 
 )
 
+app.include_router(
+
+    user_router
+
+)
+
 # ---------------------------------------------------
 # STARTUP EVENT
 # ---------------------------------------------------
@@ -177,7 +184,7 @@ async def startup_event():
 
     logger.info(
 
-        f"{settings.APP_NAME} started"
+        f"{settings.APP_NAME} started successfully"
 
     )
 
@@ -227,6 +234,10 @@ def home():
 
         "docs":
 
-            "/docs"
+            "/docs",
+
+        "status":
+
+            "online"
 
     }
