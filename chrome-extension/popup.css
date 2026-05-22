@@ -1,0 +1,118 @@
+body {
+
+    margin: 0;
+    padding: 0;
+
+    width: 360px;
+
+    background: #0f172a;
+
+    color: white;
+
+    font-family: Arial, sans-serif;
+}
+
+.container {
+
+    padding: 16px;
+}
+
+.header {
+
+    text-align: center;
+
+    margin-bottom: 20px;
+}
+
+.header h1 {
+
+    margin: 0;
+
+    font-size: 22px;
+
+    color: #38bdf8;
+}
+
+.header p {
+
+    margin-top: 8px;
+
+    color: #cbd5e1;
+
+    font-size: 13px;
+}
+
+.status-card {
+
+    border-radius: 12px;
+
+    padding: 16px;
+
+    margin-bottom: 20px;
+
+    text-align: center;
+}
+
+.status-card.safe {
+
+    background: #166534;
+}
+
+.status-card.malicious {
+
+    background: #991b1b;
+}
+
+.status-card.warning {
+
+    background: #92400e;
+}
+
+.status-card h2 {
+
+    margin: 0;
+
+    font-size: 28px;
+}
+
+.status-card p {
+
+    margin-top: 10px;
+
+    word-break: break-word;
+
+    font-size: 12px;
+}
+
+.details {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+}
+
+.detail-item {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    background: #1e293b;
+
+    padding: 12px;
+
+    border-radius: 10px;
+}
+
+.footer {
+
+    margin-top: 20px;
+
+    text-align: center;
+
+    font-size: 11px;
+
+    color: #94a3b8;
+}

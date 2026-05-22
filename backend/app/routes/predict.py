@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 from fastapi import Request
 from fastapi import Depends
+from fastapi import Header
+from fastapi import HTTPException
 
 import asyncio
 import time
@@ -9,41 +11,10 @@ from urllib.parse import urlparse
 
 from sqlalchemy.orm import Session
 
-# ---------------------------------------------------
-# CONFIG
-# ---------------------------------------------------
-
 from app.core.config import settings
-
-# ---------------------------------------------------
-# CONSTANTS
-# ---------------------------------------------------
-
 from app.core.constants import *
-
-# ---------------------------------------------------
-# RATE LIMITER
-# ---------------------------------------------------
-
 from app.core.rate_limiter import limiter
-
-# ---------------------------------------------------
-# LOGGER
-# ---------------------------------------------------
-
 from app.core.logger import logger
-
-# ---------------------------------------------------
-# AUTH
-# ---------------------------------------------------
-
-from app.auth.dependencies import (
-    get_current_user
-)
-
-# ---------------------------------------------------
-# DATABASE
-# ---------------------------------------------------
 
 from app.database.database import (
     get_db,
@@ -55,66 +26,30 @@ from app.database.models import (
     ScanHistory
 )
 
-# ---------------------------------------------------
-# SCHEMAS
-# ---------------------------------------------------
-
 from app.schemas.request_models import URLRequest
 
 from app.schemas.response_models import (
     PredictionResponse
 )
 
-# ---------------------------------------------------
-# FEATURE ENGINEERING
-# ---------------------------------------------------
-
 from app.utils.features import extract_features
 
-# ---------------------------------------------------
-# EXPLAINABILITY
-# ---------------------------------------------------
-
 from app.services.explain import explain_url
-
-# ---------------------------------------------------
-# CACHE
-# ---------------------------------------------------
 
 from app.utils.cache import (
     get_cached_result,
     store_result
 )
 
-# ---------------------------------------------------
-# ASYNC SCANNER
-# ---------------------------------------------------
-
 from app.utils.async_scanner import async_scan
 
-# ---------------------------------------------------
-# AI ENGINES
-# ---------------------------------------------------
-
-from app.services.fusion_engine import (
-    fusion_predict
-)
+from app.services.fusion_engine import fusion_predict
 
 from app.services.distilbert_engine import (
     semantic_phishing_check
 )
 
-# ---------------------------------------------------
-# WHOIS
-# ---------------------------------------------------
-
-from app.utils.whois_intel import (
-    analyze_domain
-)
-
-# ---------------------------------------------------
-# ROUTER
-# ---------------------------------------------------
+from app.utils.whois_intel import analyze_domain
 
 router = APIRouter()
 
@@ -123,34 +58,41 @@ router = APIRouter()
 # ---------------------------------------------------
 
 @limiter.limit("20/minute")
-
 @router.post(
-
     "/predict",
-
     response_model=PredictionResponse,
-
     tags=["Prediction"]
-
 )
-
 def predict(
-
     request: Request,
-
     body: URLRequest,
-
-    current_user: User = Depends(
-
-        get_current_user
-
-    ),
-
+    x_api_key: str = Header(None),
     db: Session = Depends(get_db)
-
 ):
 
     start_time = time.time()
+
+    # ---------------------------------------------------
+    # API KEY VALIDATION
+    # ---------------------------------------------------
+
+    if not x_api_key:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Missing API Key"
+        )
+
+    current_user = db.query(User).filter(
+        User.api_key == x_api_key
+    ).first()
+
+    if not current_user:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid API Key"
+        )
 
     # ---------------------------------------------------
     # SANITIZE URL
@@ -161,9 +103,7 @@ def predict(
     try:
 
         logger.info(
-
             f"{current_user.email} scanning URL: {url}"
-
         )
 
         # ---------------------------------------------------
@@ -171,63 +111,21 @@ def predict(
         # ---------------------------------------------------
 
         if not (
-
             url.startswith("http://")
-
             or
-
             url.startswith("https://")
-
         ):
 
             return {
-
                 "prediction": PREDICTION_ERROR,
-
                 "confidence": 0.0,
-
                 "risk_score": 0,
-
                 "risk_level": RISK_HIGH,
-
                 "inference_time": 0.0,
-
                 "reasons": [
-
                     "Invalid URL format"
-
                 ],
-
                 "ai_engine": {}
-
-            }
-
-        # ---------------------------------------------------
-        # URL LENGTH VALIDATION
-        # ---------------------------------------------------
-
-        if len(url) > MAX_URL_LENGTH:
-
-            return {
-
-                "prediction": PREDICTION_ERROR,
-
-                "confidence": 0.0,
-
-                "risk_score": 0,
-
-                "risk_level": RISK_HIGH,
-
-                "inference_time": 0.0,
-
-                "reasons": [
-
-                    "URL exceeds maximum allowed length"
-
-                ],
-
-                "ai_engine": {}
-
             }
 
         # ---------------------------------------------------
@@ -261,25 +159,15 @@ def predict(
         if hostname in settings.SAFE_DOMAINS:
 
             result = {
-
                 "prediction": PREDICTION_SAFE,
-
                 "confidence": 1.0,
-
                 "risk_score": 0,
-
                 "risk_level": RISK_SAFE,
-
                 "inference_time": 0.0,
-
                 "reasons": [
-
                     "Trusted domain whitelist"
-
                 ],
-
                 "ai_engine": {}
-
             }
 
             return result
@@ -295,10 +183,8 @@ def predict(
         # ---------------------------------------------------
 
         fusion_result = fusion_predict(
-
             url,
             feat
-
         )
 
         prob = fusion_result["probability"]
@@ -324,15 +210,11 @@ def predict(
         # ---------------------------------------------------
 
         reasons = list(
-
             set(explain_url(url))
-
         )
 
         reasons.extend(
-
             semantic_reasons
-
         )
 
         # ---------------------------------------------------
@@ -342,9 +224,7 @@ def predict(
         whois_result = analyze_domain(url)
 
         reasons.extend(
-
             whois_result["indicators"]
-
         )
 
         # ---------------------------------------------------
@@ -352,14 +232,10 @@ def predict(
         # ---------------------------------------------------
 
         scan_results = asyncio.run(
-
             async_scan(
-
                 url,
                 run_bert_model=False
-
             )
-
         )
 
         # ---------------------------------------------------
@@ -371,20 +247,14 @@ def predict(
         if vt_result["malicious"]:
 
             reasons.append(
-
                 f"Flagged by VirusTotal ({vt_result['detections']} detections)"
-
             )
 
         # ---------------------------------------------------
         # REMOVE DUPLICATES
         # ---------------------------------------------------
 
-        reasons = list(
-
-            set(reasons)
-
-        )
+        reasons = list(set(reasons))
 
         # ---------------------------------------------------
         # RISK SCORE
@@ -425,13 +295,9 @@ def predict(
         # ---------------------------------------------------
 
         prediction = (
-
             PREDICTION_MALICIOUS
-
             if risk_level != RISK_SAFE
-
             else PREDICTION_SAFE
-
         )
 
         # ---------------------------------------------------
@@ -439,10 +305,8 @@ def predict(
         # ---------------------------------------------------
 
         inference_time = round(
-
             time.time() - start_time,
             4
-
         )
 
         # ---------------------------------------------------
@@ -466,27 +330,20 @@ def predict(
             "ai_engine": {
 
                 "lgb_probability":
-
                     round(lgb_prob, 4),
 
                 "rf_probability":
-
                     round(rf_prob, 4),
 
                 "hybrid_probability":
-
                     round(prob, 4),
 
                 "semantic_score":
-
                     semantic_score,
 
                 "semantic_confidence":
-
                     semantic_confidence
-
             }
-
         }
 
         # ---------------------------------------------------
@@ -494,10 +351,8 @@ def predict(
         # ---------------------------------------------------
 
         store_result(
-
             url,
             result
-
         )
 
         # ---------------------------------------------------
@@ -517,7 +372,6 @@ def predict(
             risk_level=risk_level,
 
             confidence=round(prob, 4)
-
         )
 
         db.add(history)
@@ -535,23 +389,15 @@ def predict(
         # ---------------------------------------------------
 
         log_detection(
-
             url=url,
-
             prediction=prediction,
-
             risk_score=risk_score,
-
             risk_level=risk_level,
-
             confidence=round(prob, 4)
-
         )
 
         logger.info(
-
             f"{url} -> {prediction}"
-
         )
 
         return result
@@ -573,11 +419,8 @@ def predict(
             "inference_time": 0.0,
 
             "reasons": [
-
                 str(e)
-
             ],
 
             "ai_engine": {}
-
         }

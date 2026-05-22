@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>AI Phishing Shield</title>
+
+    <link
+        rel="stylesheet"
+        href="popup.css"
+    >
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- HEADER -->
+
+        <div class="header">
+
+            <h1>
+                🛡️ AI Phishing Shield
+            </h1>
+
+            <p>
+                Real-Time Browser Protection
+            </p>
+
+        </div>
+
+        <!-- STATUS CARD -->
+
+        <div
+            id="statusCard"
+            class="status-card safe"
+        >
+
+            <h2 id="statusText">
+
+                SAFE
+
+            </h2>
+
+            <p id="urlText">
+
+                Waiting for scan...
+
+            </p>
+
+        </div>
+
+        <!-- DETAILS -->
+
+        <div class="details">
+
+            <div class="detail-item">
+
+                <span>
+                    Risk Score
+                </span>
+
+                <span id="riskScore">
+                    0
+                </span>
+
+            </div>
+
+            <div class="detail-item">
+
+                <span>
+                    Confidence
+                </span>
+
+                <span id="confidence">
+                    0%
+                </span>
+
+            </div>
+
+            <div class="detail-item">
+
+                <span>
+                    Threat Level
+                </span>
+
+                <span id="riskLevel">
+                    SAFE
+                </span>
+
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+
+        <div class="footer">
+
+            <p>
+                AI-Powered Phishing Detection
+            </p>
+
+        </div>
+
+    </div>
+
+    <script src="popup.js"></script>
+
+</body>
+
+</html>
