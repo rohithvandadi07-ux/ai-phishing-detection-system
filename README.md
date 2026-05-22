@@ -638,7 +638,6 @@ focused on:
 
 ## Rohith V
 
-AI & Cybersecurity Developer
 
 ---
 
