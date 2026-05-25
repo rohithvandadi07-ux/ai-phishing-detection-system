@@ -4,6 +4,8 @@ from fastapi import Depends
 
 import asyncio
 import time
+import re
+import math
 
 from urllib.parse import urlparse
 
@@ -110,6 +112,198 @@ from app.utils.whois_intel import (
 router = APIRouter()
 
 # ---------------------------------------------------
+# SUSPICIOUS KEYWORDS
+# ---------------------------------------------------
+
+SUSPICIOUS_KEYWORDS = [
+
+    "login",
+    "verify",
+    "secure",
+    "account",
+    "update",
+    "bank",
+    "paypal",
+    "amazon",
+    "wallet",
+    "signin",
+    "password",
+    "otp",
+    "billing",
+    "crypto",
+    "gift",
+    "microsoft",
+    "google",
+    "apple"
+
+]
+
+# ---------------------------------------------------
+# SUSPICIOUS TLDS
+# ---------------------------------------------------
+
+SUSPICIOUS_TLDS = [
+
+    ".xyz",
+    ".top",
+    ".ru",
+    ".tk",
+    ".gq",
+    ".ml",
+    ".cf",
+    ".ga"
+
+]
+
+# ---------------------------------------------------
+# URL ENTROPY
+# ---------------------------------------------------
+
+def calculate_entropy(text):
+
+    prob = [
+
+        float(text.count(c)) / len(text)
+
+        for c in dict.fromkeys(list(text))
+
+    ]
+
+    entropy = -sum(
+
+        p * math.log(p) / math.log(2.0)
+
+        for p in prob
+
+    )
+
+    return entropy
+
+# ---------------------------------------------------
+# ADVANCED URL ANALYSIS
+# ---------------------------------------------------
+
+def advanced_url_analysis(url):
+
+    score = 0
+
+    indicators = []
+
+    lower_url = url.lower()
+
+    # ------------------------------------------------
+    # KEYWORDS
+    # ------------------------------------------------
+
+    for keyword in SUSPICIOUS_KEYWORDS:
+
+        if keyword in lower_url:
+
+            score += 8
+
+            indicators.append(
+                f"Suspicious keyword detected: {keyword}"
+            )
+
+    # ------------------------------------------------
+    # LONG URL
+    # ------------------------------------------------
+
+    if len(url) > 75:
+
+        score += 10
+
+        indicators.append(
+            "Unusually long URL detected"
+        )
+
+    # ------------------------------------------------
+    # @ SYMBOL
+    # ------------------------------------------------
+
+    if "@" in url:
+
+        score += 15
+
+        indicators.append(
+            "@ symbol obfuscation detected"
+        )
+
+    # ------------------------------------------------
+    # MULTIPLE HYPHENS
+    # ------------------------------------------------
+
+    if url.count("-") >= 3:
+
+        score += 12
+
+        indicators.append(
+            "Multiple hyphens detected"
+        )
+
+    # ------------------------------------------------
+    # IP ADDRESS
+    # ------------------------------------------------
+
+    ip_pattern = r"(\d{1,3}\.){3}\d{1,3}"
+
+    if re.search(ip_pattern, url):
+
+        score += 20
+
+        indicators.append(
+            "IP address URL detected"
+        )
+
+    # ------------------------------------------------
+    # SUSPICIOUS TLD
+    # ------------------------------------------------
+
+    for tld in SUSPICIOUS_TLDS:
+
+        if lower_url.endswith(tld):
+
+            score += 15
+
+            indicators.append(
+                f"Suspicious TLD detected: {tld}"
+            )
+
+    # ------------------------------------------------
+    # ENTROPY
+    # ------------------------------------------------
+
+    entropy = calculate_entropy(url)
+
+    if entropy > 4.2:
+
+        score += 10
+
+        indicators.append(
+            "High entropy random-looking URL"
+        )
+
+    # ------------------------------------------------
+    # TOO MANY SUBDOMAINS
+    # ------------------------------------------------
+
+    if url.count(".") >= 4:
+
+        score += 10
+
+        indicators.append(
+            "Too many subdomains detected"
+        )
+
+    return {
+
+        "score": score,
+
+        "indicators": indicators
+
+    }
+
+# ---------------------------------------------------
 # PREDICTION ROUTE
 # ---------------------------------------------------
 
@@ -131,10 +325,6 @@ def predict(
 ):
 
     start_time = time.time()
-
-    # ---------------------------------------------------
-    # SANITIZE URL
-    # ---------------------------------------------------
 
     url = body.url.strip()
 
@@ -179,7 +369,7 @@ def predict(
             }
 
         # ---------------------------------------------------
-        # URL LENGTH VALIDATION
+        # URL LENGTH CHECK
         # ---------------------------------------------------
 
         if len(url) > MAX_URL_LENGTH:
@@ -205,7 +395,7 @@ def predict(
             }
 
         # ---------------------------------------------------
-        # CACHE CHECK
+        # CACHE
         # ---------------------------------------------------
 
         cached = get_cached_result(url)
@@ -229,7 +419,7 @@ def predict(
             hostname = hostname[4:]
 
         # ---------------------------------------------------
-        # SAFE DOMAIN WHITELIST
+        # SAFE WHITELIST
         # ---------------------------------------------------
 
         if hostname in settings.SAFE_DOMAINS:
@@ -263,6 +453,16 @@ def predict(
         feat = extract_features(url)
 
         # ---------------------------------------------------
+        # ADVANCED HEURISTICS
+        # ---------------------------------------------------
+
+        heuristic_result = advanced_url_analysis(url)
+
+        heuristic_score = heuristic_result["score"]
+
+        heuristic_indicators = heuristic_result["indicators"]
+
+        # ---------------------------------------------------
         # HYBRID AI ENGINE
         # ---------------------------------------------------
 
@@ -272,6 +472,14 @@ def predict(
         )
 
         prob = fusion_result["probability"]
+
+        # ---------------------------------------------------
+        # HEURISTIC BOOST
+        # ---------------------------------------------------
+
+        prob += (heuristic_score / 100) * 0.25
+
+        prob = min(prob, 1.0)
 
         lgb_prob = fusion_result["lgb_prob"]
 
@@ -301,6 +509,10 @@ def predict(
             semantic_reasons
         )
 
+        reasons.extend(
+            heuristic_indicators
+        )
+
         # ---------------------------------------------------
         # WHOIS ANALYSIS
         # ---------------------------------------------------
@@ -312,7 +524,7 @@ def predict(
         )
 
         # ---------------------------------------------------
-        # ASYNC THREAT SCAN
+        # ASYNC SCAN
         # ---------------------------------------------------
 
         scan_results = asyncio.run(
@@ -379,6 +591,16 @@ def predict(
             risk_level = RISK_SAFE
 
         # ---------------------------------------------------
+        # HIGH RISK OVERRIDE
+        # ---------------------------------------------------
+
+        if heuristic_score >= 40:
+
+            risk_score = max(risk_score, 90)
+
+            risk_level = RISK_CRITICAL
+
+        # ---------------------------------------------------
         # FINAL PREDICTION
         # ---------------------------------------------------
 
@@ -434,7 +656,10 @@ def predict(
                     semantic_score,
 
                 "semantic_confidence":
-                    semantic_confidence
+                    semantic_confidence,
+
+                "heuristic_score":
+                    heuristic_score
             }
         }
 
@@ -448,7 +673,7 @@ def predict(
         )
 
         # ---------------------------------------------------
-        # SAVE SCAN HISTORY
+        # SAVE HISTORY
         # ---------------------------------------------------
 
         history = ScanHistory(

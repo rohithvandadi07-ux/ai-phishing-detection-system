@@ -16,32 +16,87 @@
 
     <div class="container">
 
+        <!-- ===================================== -->
         <!-- HEADER -->
+        <!-- ===================================== -->
 
         <div class="header">
 
-            <h1>
-                🛡️ AI Phishing Shield
-            </h1>
+            <div class="logo-row">
 
-            <p>
-                Real-Time Browser Protection
-            </p>
+                <div class="shield-icon">
+                    🛡️
+                </div>
+
+                <div>
+
+                    <h1>
+                        AI Phishing Shield
+                    </h1>
+
+                    <p>
+                        Real-Time Cybersecurity Monitor
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="live-status">
+
+                <span class="live-dot"></span>
+
+                LIVE PROTECTION ACTIVE
+
+            </div>
 
         </div>
 
-        <!-- STATUS CARD -->
+        <!-- ===================================== -->
+        <!-- MAIN STATUS -->
+        <!-- ===================================== -->
 
         <div
             id="statusCard"
             class="status-card safe"
         >
 
-            <h2 id="statusText">
+            <div class="status-top">
 
-                SAFE
+                <div>
 
-            </h2>
+                    <h2 id="statusText">
+
+                        SAFE
+
+                    </h2>
+
+                    <p class="status-subtitle">
+
+                        AI Threat Detection Engine
+
+                    </p>
+
+                </div>
+
+                <div class="threat-indicator">
+
+                    <div
+                        id="threatCircle"
+                        class="threat-circle safe-circle"
+                    >
+
+                        <span id="threatPercent">
+
+                            0%
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
 
             <p id="urlText">
 
@@ -51,7 +106,40 @@
 
         </div>
 
+        <!-- ===================================== -->
+        <!-- THREAT METER -->
+        <!-- ===================================== -->
+
+        <div class="meter-section">
+
+            <div class="meter-header">
+
+                <span>
+                    Threat Confidence
+                </span>
+
+                <span id="confidence">
+
+                    0%
+
+                </span>
+
+            </div>
+
+            <div class="meter-bar">
+
+                <div
+                    id="meterFill"
+                    class="meter-fill"
+                ></div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
         <!-- DETAILS -->
+        <!-- ===================================== -->
 
         <div class="details">
 
@@ -62,19 +150,9 @@
                 </span>
 
                 <span id="riskScore">
+
                     0
-                </span>
 
-            </div>
-
-            <div class="detail-item">
-
-                <span>
-                    Confidence
-                </span>
-
-                <span id="confidence">
-                    0%
                 </span>
 
             </div>
@@ -86,19 +164,209 @@
                 </span>
 
                 <span id="riskLevel">
+
                     SAFE
+
+                </span>
+
+            </div>
+
+            <div class="detail-item">
+
+                <span>
+                    Scan Status
+                </span>
+
+                <span id="scanStatus">
+
+                    ACTIVE
+
                 </span>
 
             </div>
 
         </div>
 
+        <!-- ===================================== -->
+        <!-- AI ENGINE PANEL -->
+        <!-- ===================================== -->
+
+        <div class="engine-panel">
+
+            <h3>
+                AI Engine Status
+            </h3>
+
+            <div class="engine-grid">
+
+                <div class="engine-card">
+
+                    <span class="engine-title">
+
+                        LightGBM
+
+                    </span>
+
+                    <span
+                        id="lgbScore"
+                        class="engine-score"
+                    >
+
+                        0%
+
+                    </span>
+
+                </div>
+
+                <div class="engine-card">
+
+                    <span class="engine-title">
+
+                        Random Forest
+
+                    </span>
+
+                    <span
+                        id="rfScore"
+                        class="engine-score"
+                    >
+
+                        0%
+
+                    </span>
+
+                </div>
+
+                <div class="engine-card">
+
+                    <span class="engine-title">
+
+                        DistilBERT
+
+                    </span>
+
+                    <span
+                        id="bertScore"
+                        class="engine-score"
+                    >
+
+                        0%
+
+                    </span>
+
+                </div>
+
+                <div class="engine-card">
+
+                    <span class="engine-title">
+
+                        Hybrid AI
+
+                    </span>
+
+                    <span
+                        id="hybridScore"
+                        class="engine-score"
+                    >
+
+                        0%
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- ANALYTICS -->
+        <!-- ===================================== -->
+
+        <div class="analytics">
+
+            <div class="analytics-card">
+
+                <h3>
+                    Total Safe
+                </h3>
+
+                <span id="safeCount">
+
+                    0
+
+                </span>
+
+            </div>
+
+            <div class="analytics-card danger">
+
+                <h3>
+                    Total Blocked
+                </h3>
+
+                <span id="blockedCount">
+
+                    0
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- AI THREAT ANALYSIS -->
+        <!-- ===================================== -->
+
+        <div class="reasons-section">
+
+            <h3>
+                AI Threat Analysis
+            </h3>
+
+            <div id="reasonsList">
+
+                <div class="reason-item">
+
+                    Waiting for AI analysis...
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- RECENT HISTORY -->
+        <!-- ===================================== -->
+
+        <div class="history-section">
+
+            <h3>
+                Recent Scans
+            </h3>
+
+            <div id="historyList">
+
+                <p class="empty">
+
+                    No scans yet
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
         <!-- FOOTER -->
+        <!-- ===================================== -->
 
         <div class="footer">
 
             <p>
-                AI-Powered Phishing Detection
+                Enterprise AI Cybersecurity Protection
             </p>
 
         </div>
