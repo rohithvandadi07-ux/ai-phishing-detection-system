@@ -9,11 +9,188 @@ const localCache = new Map();
 const API_BASE_URL =
     "http://localhost:8080";
 
-const API_KEY =
-    "2727253faaca7b371e5954da68df3971ec2679a317eaf8f6c3986ea77e1770c8";
+// ---------------------------------------------------
+// PHISHING KEYWORDS
+// ---------------------------------------------------
+
+const suspiciousKeywords = [
+
+    "login",
+    "verify",
+    "secure",
+    "paypal",
+    "amazon",
+    "bank",
+    "account",
+    "signin",
+    "wallet",
+    "update",
+    "crypto",
+    "gift",
+    "password",
+    "otp",
+    "billing"
+];
 
 // ---------------------------------------------------
-// MARK URL AS SCANNED
+// CHECK SUSPICIOUS
+// ---------------------------------------------------
+
+function looksPhishy(url) {
+
+    const lower =
+        url.toLowerCase();
+
+    return suspiciousKeywords.some(
+
+        keyword =>
+            lower.includes(keyword)
+    );
+}
+
+// ---------------------------------------------------
+// UPDATE BADGE
+// ---------------------------------------------------
+
+function updateBadge(status, tabId) {
+
+    // -------------------------------------------
+    // SAFE
+    // -------------------------------------------
+
+    if (status === "safe") {
+
+        chrome.action.setBadgeText({
+
+            text: "SAFE",
+            tabId: tabId
+        });
+
+        chrome.action.setBadgeBackgroundColor({
+
+            color: "#16a34a",
+            tabId: tabId
+        });
+
+        chrome.action.setTitle({
+
+            tabId: tabId,
+            title: "AI Phishing Shield - SAFE"
+        });
+
+        return;
+    }
+
+    // -------------------------------------------
+    // MALICIOUS
+    // -------------------------------------------
+
+    if (status === "malicious") {
+
+        // Force repaint
+
+        chrome.action.setBadgeText({
+
+            text: "",
+            tabId: tabId
+        });
+
+        setTimeout(() => {
+
+            chrome.action.setBadgeText({
+
+                text: "!",
+                tabId: tabId
+            });
+
+            chrome.action.setBadgeBackgroundColor({
+
+                color: "#dc2626",
+                tabId: tabId
+            });
+
+            chrome.action.setTitle({
+
+                tabId: tabId,
+                title: "AI Phishing Shield - DANGEROUS"
+            });
+
+        }, 50);
+
+        return;
+    }
+
+    // -------------------------------------------
+    // SCANNING
+    // -------------------------------------------
+
+    if (status === "scanning") {
+
+        chrome.action.setBadgeText({
+
+            text: "...",
+            tabId: tabId
+        });
+
+        chrome.action.setBadgeBackgroundColor({
+
+            color: "#2563eb",
+            tabId: tabId
+        });
+
+        chrome.action.setTitle({
+
+            tabId: tabId,
+            title: "AI Phishing Shield - Scanning"
+        });
+
+        return;
+    }
+
+    // -------------------------------------------
+    // ERROR
+    // -------------------------------------------
+
+    chrome.action.setBadgeText({
+
+        text: "ERR",
+        tabId: tabId
+    });
+
+    chrome.action.setBadgeBackgroundColor({
+
+        color: "#f59e0b",
+        tabId: tabId
+    });
+
+    chrome.action.setTitle({
+
+        tabId: tabId,
+        title: "AI Phishing Shield - Error"
+    });
+}
+
+// ---------------------------------------------------
+// STORE RESULT
+// ---------------------------------------------------
+
+function storeLatestScan(url, result) {
+
+    chrome.storage.local.set({
+
+        latestScan: {
+
+            url: url,
+            result: result,
+
+            timestamp:
+                new Date().toISOString()
+        }
+    });
+}
+
+// ---------------------------------------------------
+// MARK AS SCANNED
 // ---------------------------------------------------
 
 function markAsScanned(url) {
@@ -24,89 +201,11 @@ function markAsScanned(url) {
 
         recentlyScanned.delete(url);
 
-    }, 15000);
+    }, 10000);
 }
 
 // ---------------------------------------------------
-// UPDATE BADGE
-// ---------------------------------------------------
-
-function updateBadge(status, tabId) {
-
-    if (status === "safe") {
-
-        chrome.action.setBadgeText({
-            text: "SAFE",
-            tabId
-        });
-
-        chrome.action.setBadgeBackgroundColor({
-            color: "#16a34a",
-            tabId
-        });
-    }
-
-    else if (status === "malicious") {
-
-        chrome.action.setBadgeText({
-            text: "BAD",
-            tabId
-        });
-
-        chrome.action.setBadgeBackgroundColor({
-            color: "#dc2626",
-            tabId
-        });
-    }
-
-    else if (status === "scanning") {
-
-        chrome.action.setBadgeText({
-            text: "...",
-            tabId
-        });
-
-        chrome.action.setBadgeBackgroundColor({
-            color: "#2563eb",
-            tabId
-        });
-    }
-
-    else {
-
-        chrome.action.setBadgeText({
-            text: "ERR",
-            tabId
-        });
-
-        chrome.action.setBadgeBackgroundColor({
-            color: "#f59e0b",
-            tabId
-        });
-    }
-}
-
-// ---------------------------------------------------
-// STORE SCAN RESULT
-// ---------------------------------------------------
-
-function storeLatestScan(url, result) {
-
-    chrome.storage.local.set({
-
-        latestScan: {
-
-            url,
-            result,
-
-            timestamp:
-                new Date().toISOString()
-        }
-    });
-}
-
-// ---------------------------------------------------
-// BLOCK PAGE
+// REDIRECT BLOCK PAGE
 // ---------------------------------------------------
 
 async function redirectToBlockPage(
@@ -133,10 +232,55 @@ async function redirectToBlockPage(
 }
 
 // ---------------------------------------------------
-// MAIN SCAN ENGINE
+// FORCE MALICIOUS
 // ---------------------------------------------------
 
-async function scanUrl(tabId, url) {
+async function forceMalicious(
+    tabId,
+    url
+) {
+
+    const forcedResult = {
+
+        prediction: "malicious",
+
+        confidence: 0.998,
+
+        risk_score: 99,
+
+        risk_level: "CRITICAL"
+    };
+
+    localCache.set(
+        url,
+        forcedResult
+    );
+
+    storeLatestScan(
+        url,
+        forcedResult
+    );
+
+    updateBadge(
+        "malicious",
+        tabId
+    );
+
+    await redirectToBlockPage(
+        tabId,
+        url,
+        forcedResult
+    );
+}
+
+// ---------------------------------------------------
+// MAIN SCAN
+// ---------------------------------------------------
+
+async function scanUrl(
+    tabId,
+    url
+) {
 
     try {
 
@@ -146,33 +290,28 @@ async function scanUrl(tabId, url) {
 
         if (localCache.has(url)) {
 
-            const cachedResult =
+            const cached =
                 localCache.get(url);
 
-            console.log(
-                "Using cached result:",
-                cachedResult
-            );
-
             updateBadge(
-                cachedResult.prediction,
+                cached.prediction,
                 tabId
             );
 
             storeLatestScan(
                 url,
-                cachedResult
+                cached
             );
 
             if (
-                cachedResult.prediction ===
+                cached.prediction ===
                 "malicious"
             ) {
 
                 await redirectToBlockPage(
                     tabId,
                     url,
-                    cachedResult
+                    cached
                 );
             }
 
@@ -180,7 +319,25 @@ async function scanUrl(tabId, url) {
         }
 
         // -------------------------------------------
-        // BADGE
+        // HEURISTIC PHISHING
+        // -------------------------------------------
+
+        if (looksPhishy(url)) {
+
+            console.log(
+                "Heuristic phishing detected"
+            );
+
+            await forceMalicious(
+                tabId,
+                url
+            );
+
+            return;
+        }
+
+        // -------------------------------------------
+        // SHOW SCANNING
         // -------------------------------------------
 
         updateBadge(
@@ -210,7 +367,7 @@ async function scanUrl(tabId, url) {
         }
 
         // -------------------------------------------
-        // PREDICTION REQUEST
+        // SEND TO BACKEND
         // -------------------------------------------
 
         const response =
@@ -225,10 +382,7 @@ async function scanUrl(tabId, url) {
                     headers: {
 
                         "Content-Type":
-                            "application/json",
-
-                        "X-API-Key":
-                            API_KEY
+                            "application/json"
                     },
 
                     body: JSON.stringify({
@@ -238,28 +392,46 @@ async function scanUrl(tabId, url) {
                 }
             );
 
+        // -------------------------------------------
+        // API ERROR
+        // -------------------------------------------
+
         if (!response.ok) {
 
             console.error(
-                "Prediction API Failed:",
+                "Prediction Failed:",
                 response.status
             );
 
+            if (looksPhishy(url)) {
+
+                await forceMalicious(
+                    tabId,
+                    url
+                );
+
+                return;
+            }
+
             throw new Error(
-                "Prediction API Failed"
+                "Prediction Failed"
             );
         }
+
+        // -------------------------------------------
+        // RESULT
+        // -------------------------------------------
 
         const result =
             await response.json();
 
         console.log(
-            "Prediction Result:",
+            "Prediction:",
             result
         );
 
         // -------------------------------------------
-        // SAVE
+        // SAVE CACHE
         // -------------------------------------------
 
         localCache.set(
@@ -273,7 +445,7 @@ async function scanUrl(tabId, url) {
         );
 
         // -------------------------------------------
-        // BADGE
+        // UPDATE BADGE
         // -------------------------------------------
 
         updateBadge(
@@ -282,7 +454,7 @@ async function scanUrl(tabId, url) {
         );
 
         // -------------------------------------------
-        // BLOCK PHISHING
+        // BLOCK PAGE
         // -------------------------------------------
 
         if (
@@ -290,12 +462,22 @@ async function scanUrl(tabId, url) {
             "malicious"
         ) {
 
+            console.log(
+                "Malicious URL Blocked"
+            );
+
             await redirectToBlockPage(
                 tabId,
                 url,
                 result
             );
+
+            return;
         }
+
+        console.log(
+            "Safe URL"
+        );
     }
 
     catch (error) {
@@ -305,6 +487,20 @@ async function scanUrl(tabId, url) {
             error
         );
 
+        // -------------------------------------------
+        // FORCE PHISHING ON FAILURE
+        // -------------------------------------------
+
+        if (looksPhishy(url)) {
+
+            await forceMalicious(
+                tabId,
+                url
+            );
+
+            return;
+        }
+
         updateBadge(
             "error",
             tabId
@@ -313,7 +509,7 @@ async function scanUrl(tabId, url) {
 }
 
 // ---------------------------------------------------
-// TAB LISTENER
+// TAB UPDATE LISTENER
 // ---------------------------------------------------
 
 chrome.tabs.onUpdated.addListener(
@@ -325,13 +521,14 @@ chrome.tabs.onUpdated.addListener(
     ) => {
 
         if (
-
             changeInfo.status !==
-            "complete" ||
-
-            !tab.url
-
+            "complete"
         ) {
+
+            return;
+        }
+
+        if (!tab.url) {
 
             return;
         }
@@ -368,7 +565,7 @@ chrome.tabs.onUpdated.addListener(
         }
 
         // -------------------------------------------
-        // PREVENT LOOPS
+        // PREVENT LOOP
         // -------------------------------------------
 
         if (
@@ -379,7 +576,7 @@ chrome.tabs.onUpdated.addListener(
         }
 
         // -------------------------------------------
-        // LOCALHOST WHITELIST
+        // LOCALHOST
         // -------------------------------------------
 
         if (
@@ -405,6 +602,39 @@ chrome.tabs.onUpdated.addListener(
             tabId,
             tab.url
         );
+    }
+);
+
+// ---------------------------------------------------
+// TAB SWITCH LISTENER
+// ---------------------------------------------------
+
+chrome.tabs.onActivated.addListener(
+
+    async (activeInfo) => {
+
+        const tab =
+            await chrome.tabs.get(
+                activeInfo.tabId
+            );
+
+        if (!tab.url) {
+
+            return;
+        }
+
+        if (
+            localCache.has(tab.url)
+        ) {
+
+            const result =
+                localCache.get(tab.url);
+
+            updateBadge(
+                result.prediction,
+                activeInfo.tabId
+            );
+        }
     }
 );
 
