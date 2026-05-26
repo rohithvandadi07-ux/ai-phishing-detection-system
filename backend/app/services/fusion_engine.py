@@ -5,6 +5,10 @@ from app.services.distilbert_engine import (
     semantic_phishing_check
 )
 
+from app.services.virustotal_service import (
+    get_virustotal_report
+)
+
 # ---------------------------------------------------
 # LOAD MODELS
 # ---------------------------------------------------
@@ -25,7 +29,10 @@ scaler = pickle.load(
 # HYBRID AI FUSION ENGINE
 # ---------------------------------------------------
 
-def fusion_predict(url, manual_features):
+def fusion_predict(
+    url,
+    manual_features
+):
 
     # ---------------------------------------------------
     # SCALE FEATURES
@@ -72,16 +79,33 @@ def fusion_predict(url, manual_features):
     bert_reasons = bert_result["reasons"]
 
     # ---------------------------------------------------
-    # AI-DOMINANT FUSION
+    # VIRUSTOTAL
+    # ---------------------------------------------------
+
+    vt_result = get_virustotal_report(
+        url
+    )
+
+    vt_prob = float(
+        vt_result.get(
+            "confidence",
+            0.0
+        )
+    )
+
+    # ---------------------------------------------------
+    # INITIAL AI FUSION
     # ---------------------------------------------------
 
     hybrid_probability = (
 
-        (0.50 * lgb_prob) +
+        (0.40 * lgb_prob) +
 
-        (0.30 * rf_prob) +
+        (0.25 * rf_prob) +
 
-        (0.20 * bert_prob)
+        (0.20 * bert_prob) +
+
+        (0.15 * vt_prob)
     )
 
     # ---------------------------------------------------
@@ -102,7 +126,10 @@ def fusion_predict(url, manual_features):
         "paypal",
         "amazon",
         "otp",
-        "confirm"
+        "confirm",
+        "authenticate",
+        "support",
+        "recovery"
     ]
 
     lowered_url = url.lower()
@@ -115,7 +142,7 @@ def fusion_predict(url, manual_features):
     )
 
     # ---------------------------------------------------
-    # MODERATE BOOST ONLY
+    # PHISHING KEYWORD BOOST
     # ---------------------------------------------------
 
     if keyword_hits >= 3:
@@ -127,7 +154,7 @@ def fusion_predict(url, manual_features):
         hybrid_probability += 0.05
 
     # ---------------------------------------------------
-    # ADVANCED DOMAIN TRICKS
+    # DOMAIN TRICKS
     # ---------------------------------------------------
 
     if "@" in url:
@@ -170,12 +197,14 @@ def fusion_predict(url, manual_features):
     # HTTPS BONUS
     # ---------------------------------------------------
 
-    if lowered_url.startswith("https://"):
+    if lowered_url.startswith(
+        "https://"
+    ):
 
         hybrid_probability -= 0.03
 
     # ---------------------------------------------------
-    # TRUSTED DOMAINS BONUS
+    # TRUSTED DOMAINS
     # ---------------------------------------------------
 
     trusted_keywords = [
@@ -196,6 +225,16 @@ def fusion_predict(url, manual_features):
         hybrid_probability -= 0.15
 
     # ---------------------------------------------------
+    # VIRUSTOTAL BOOST
+    # ---------------------------------------------------
+
+    if vt_result.get(
+        "status"
+    ) == "malicious":
+
+        hybrid_probability += 0.20
+
+    # ---------------------------------------------------
     # CLAMP
     # ---------------------------------------------------
 
@@ -213,6 +252,10 @@ def fusion_predict(url, manual_features):
     # ---------------------------------------------------
 
     ai_reasons = []
+
+    # ---------------------------------------------------
+    # HYBRID SCORE
+    # ---------------------------------------------------
 
     if hybrid_probability >= 0.90:
 
@@ -233,7 +276,7 @@ def fusion_predict(url, manual_features):
         )
 
     # ---------------------------------------------------
-    # LIGHTGBM SIGNALS
+    # LIGHTGBM
     # ---------------------------------------------------
 
     if lgb_prob >= 0.80:
@@ -243,7 +286,7 @@ def fusion_predict(url, manual_features):
         )
 
     # ---------------------------------------------------
-    # RF SIGNALS
+    # RF
     # ---------------------------------------------------
 
     if rf_prob >= 0.80:
@@ -253,12 +296,25 @@ def fusion_predict(url, manual_features):
         )
 
     # ---------------------------------------------------
-    # DISTILBERT SIGNALS
+    # DISTILBERT
     # ---------------------------------------------------
 
     ai_reasons.extend(
         bert_reasons
     )
+
+    # ---------------------------------------------------
+    # VIRUSTOTAL SIGNALS
+    # ---------------------------------------------------
+
+    if vt_result.get(
+        "status"
+    ) == "malicious":
+
+        ai_reasons.append(
+            f"VirusTotal flagged URL using "
+            f"{vt_result.get('malicious', 0)} engines"
+        )
 
     # ---------------------------------------------------
     # URL SIGNALS
@@ -313,6 +369,21 @@ def fusion_predict(url, manual_features):
         "bert_prob": round(
             bert_prob,
             4
+        ),
+
+        "vt_prob": round(
+            vt_prob,
+            4
+        ),
+
+        "vt_status": vt_result.get(
+            "status",
+            "unknown"
+        ),
+
+        "vt_engines": vt_result.get(
+            "malicious",
+            0
         ),
 
         "reasons": ai_reasons
