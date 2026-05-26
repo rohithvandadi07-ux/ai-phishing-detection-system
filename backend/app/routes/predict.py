@@ -2,7 +2,6 @@ from fastapi import APIRouter
 from fastapi import Request
 from fastapi import Depends
 
-import asyncio
 import time
 import re
 import math
@@ -80,10 +79,12 @@ from app.utils.cache import (
 )
 
 # ---------------------------------------------------
-# ASYNC SCANNER
+# VIRUSTOTAL
 # ---------------------------------------------------
 
-from app.utils.async_scanner import async_scan
+from app.services.virustotal_engine import (
+    get_virustotal_report
+)
 
 # ---------------------------------------------------
 # AI ENGINES
@@ -103,6 +104,14 @@ from app.services.distilbert_engine import (
 
 from app.utils.whois_intel import (
     analyze_domain
+)
+
+# ---------------------------------------------------
+# REPUTATION ENGINE
+# ---------------------------------------------------
+
+from app.services.reputation_engine import (
+    analyze_reputation
 )
 
 # ---------------------------------------------------
@@ -335,7 +344,7 @@ def predict(
         )
 
         # ---------------------------------------------------
-        # URL VALIDATION
+        # VALIDATION
         # ---------------------------------------------------
 
         if not (
@@ -369,32 +378,6 @@ def predict(
             }
 
         # ---------------------------------------------------
-        # URL LENGTH CHECK
-        # ---------------------------------------------------
-
-        if len(url) > MAX_URL_LENGTH:
-
-            return {
-
-                "prediction": PREDICTION_ERROR,
-
-                "confidence": 0.0,
-
-                "risk_score": 0,
-
-                "risk_level": RISK_HIGH,
-
-                "inference_time": 0.0,
-
-                "reasons": [
-                    "URL exceeds maximum allowed length"
-                ],
-
-                "ai_engine": {}
-
-            }
-
-        # ---------------------------------------------------
         # CACHE
         # ---------------------------------------------------
 
@@ -407,53 +390,13 @@ def predict(
             return cached
 
         # ---------------------------------------------------
-        # DOMAIN PARSING
-        # ---------------------------------------------------
-
-        parsed = urlparse(url)
-
-        hostname = parsed.netloc.lower()
-
-        if hostname.startswith("www."):
-
-            hostname = hostname[4:]
-
-        # ---------------------------------------------------
-        # SAFE WHITELIST
-        # ---------------------------------------------------
-
-        if hostname in settings.SAFE_DOMAINS:
-
-            result = {
-
-                "prediction": PREDICTION_SAFE,
-
-                "confidence": 1.0,
-
-                "risk_score": 0,
-
-                "risk_level": RISK_SAFE,
-
-                "inference_time": 0.0,
-
-                "reasons": [
-                    "Trusted domain whitelist"
-                ],
-
-                "ai_engine": {}
-
-            }
-
-            return result
-
-        # ---------------------------------------------------
         # FEATURE EXTRACTION
         # ---------------------------------------------------
 
         feat = extract_features(url)
 
         # ---------------------------------------------------
-        # ADVANCED HEURISTICS
+        # HEURISTICS
         # ---------------------------------------------------
 
         heuristic_result = advanced_url_analysis(url)
@@ -463,7 +406,7 @@ def predict(
         heuristic_indicators = heuristic_result["indicators"]
 
         # ---------------------------------------------------
-        # HYBRID AI ENGINE
+        # HYBRID ENGINE
         # ---------------------------------------------------
 
         fusion_result = fusion_predict(
@@ -473,20 +416,22 @@ def predict(
 
         prob = fusion_result["probability"]
 
+        lgb_prob = fusion_result["lgb_prob"]
+
+        rf_prob = fusion_result["rf_prob"]
+
+        bert_prob = fusion_result["bert_prob"]
+
         # ---------------------------------------------------
-        # HEURISTIC BOOST
+        # BOOST HEURISTICS
         # ---------------------------------------------------
 
         prob += (heuristic_score / 100) * 0.25
 
         prob = min(prob, 1.0)
 
-        lgb_prob = fusion_result["lgb_prob"]
-
-        rf_prob = fusion_result["rf_prob"]
-
         # ---------------------------------------------------
-        # DISTILBERT ENGINE
+        # DISTILBERT
         # ---------------------------------------------------
 
         semantic_result = semantic_phishing_check(url)
@@ -498,23 +443,19 @@ def predict(
         semantic_reasons = semantic_result["reasons"]
 
         # ---------------------------------------------------
-        # EXPLAINABILITY
+        # REASONS
         # ---------------------------------------------------
 
         reasons = list(
             set(explain_url(url))
         )
 
-        reasons.extend(
-            semantic_reasons
-        )
+        reasons.extend(semantic_reasons)
 
-        reasons.extend(
-            heuristic_indicators
-        )
+        reasons.extend(heuristic_indicators)
 
         # ---------------------------------------------------
-        # WHOIS ANALYSIS
+        # WHOIS
         # ---------------------------------------------------
 
         whois_result = analyze_domain(url)
@@ -524,30 +465,59 @@ def predict(
         )
 
         # ---------------------------------------------------
-        # ASYNC SCAN
+        # REPUTATION
         # ---------------------------------------------------
 
-        scan_results = asyncio.run(
+        reputation_result = analyze_reputation(
+            url
+        )
 
-            async_scan(
-                url,
-                run_bert_model=False
-            )
+        reputation_score = reputation_result[
+            "reputation_score"
+        ]
 
+        reputation_level = reputation_result[
+            "reputation_level"
+        ]
+
+        reasons.extend(
+            reputation_result["indicators"]
         )
 
         # ---------------------------------------------------
         # VIRUSTOTAL
         # ---------------------------------------------------
 
-        vt_result = scan_results["virustotal"]
+        vt_result = get_virustotal_report(url)
 
-        if vt_result["malicious"]:
+        if vt_result["status"] == "malicious":
 
             reasons.append(
 
-                f"Flagged by VirusTotal ({vt_result['detections']} detections)"
+                f"VirusTotal detected malware ({vt_result['malicious']} engines flagged)"
 
+            )
+
+            prob += 0.20
+
+        elif vt_result["status"] == "suspicious":
+
+            reasons.append(
+                "VirusTotal marked URL as suspicious"
+            )
+
+            prob += 0.10
+
+        elif vt_result["status"] == "submitted":
+
+            reasons.append(
+                "URL submitted to VirusTotal"
+            )
+
+        elif vt_result["status"] == "rate_limited":
+
+            reasons.append(
+                "VirusTotal API limit reached"
             )
 
         # ---------------------------------------------------
@@ -562,13 +532,29 @@ def predict(
 
         risk_score = int(prob * 100)
 
-        if vt_result["malicious"]:
+        risk_score += int(
+            reputation_score * 0.35
+        )
+
+        risk_score += int(
+            whois_result["score"] * 0.25
+        )
+
+        if vt_result["status"] == "malicious":
 
             risk_score += 20
 
-        if risk_score > 100:
+        if heuristic_score >= 40:
 
-            risk_score = 100
+            risk_score = max(
+                risk_score,
+                90
+            )
+
+        risk_score = min(
+            risk_score,
+            100
+        )
 
         # ---------------------------------------------------
         # RISK LEVEL
@@ -591,16 +577,6 @@ def predict(
             risk_level = RISK_SAFE
 
         # ---------------------------------------------------
-        # HIGH RISK OVERRIDE
-        # ---------------------------------------------------
-
-        if heuristic_score >= 40:
-
-            risk_score = max(risk_score, 90)
-
-            risk_level = RISK_CRITICAL
-
-        # ---------------------------------------------------
         # FINAL PREDICTION
         # ---------------------------------------------------
 
@@ -615,17 +591,13 @@ def predict(
         )
 
         # ---------------------------------------------------
-        # INFERENCE TIME
+        # RESPONSE
         # ---------------------------------------------------
 
         inference_time = round(
             time.time() - start_time,
             4
         )
-
-        # ---------------------------------------------------
-        # FINAL RESPONSE
-        # ---------------------------------------------------
 
         result = {
 
@@ -649,6 +621,9 @@ def predict(
                 "rf_probability":
                     round(rf_prob, 4),
 
+                "bert_probability":
+                    round(bert_prob, 4),
+
                 "hybrid_probability":
                     round(prob, 4),
 
@@ -659,12 +634,24 @@ def predict(
                     semantic_confidence,
 
                 "heuristic_score":
-                    heuristic_score
+                    heuristic_score,
+
+                "reputation_score":
+                    reputation_score,
+
+                "reputation_level":
+                    reputation_level,
+
+                "whois_score":
+                    whois_result["score"],
+
+                "virustotal":
+                    vt_result
             }
         }
 
         # ---------------------------------------------------
-        # CACHE STORE
+        # CACHE
         # ---------------------------------------------------
 
         store_result(
@@ -673,7 +660,7 @@ def predict(
         )
 
         # ---------------------------------------------------
-        # SAVE HISTORY
+        # DATABASE
         # ---------------------------------------------------
 
         history = ScanHistory(
@@ -693,10 +680,6 @@ def predict(
         db.add(history)
 
         db.commit()
-
-        # ---------------------------------------------------
-        # DATABASE LOGGING
-        # ---------------------------------------------------
 
         log_detection(
 
