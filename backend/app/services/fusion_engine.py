@@ -5,7 +5,7 @@ from app.services.distilbert_engine import (
     semantic_phishing_check
 )
 
-from app.services.virustotal_service import (
+from app.services.virustotal_engine import (
     get_virustotal_report
 )
 
@@ -57,12 +57,22 @@ def fusion_predict(
     # RANDOM FOREST
     # ---------------------------------------------------
 
-    rf_prob = float(
+    try:
 
-        rf_model.predict_proba(
-            features_scaled
-        )[0][1]
-    )
+        rf_prob = float(
+
+            rf_model.predict_proba(
+                features_scaled
+            )[0][1]
+        )
+
+    except Exception:
+
+        # -----------------------------------------------
+        # FALLBACK
+        # -----------------------------------------------
+
+        rf_prob = lgb_prob
 
     # ---------------------------------------------------
     # DISTILBERT
