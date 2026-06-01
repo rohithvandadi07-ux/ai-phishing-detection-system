@@ -768,3 +768,46 @@ body {
     border-left:
         4px solid #22c55e;
 }
+
+.intel-section {
+
+    margin-top: 20px;
+}
+
+.intel-grid {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 12px;
+}
+
+.intel-card {
+
+    background: rgba(255,255,255,0.04);
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    border-radius: 14px;
+
+    padding: 14px;
+
+    text-align: center;
+}
+
+.intel-card span {
+
+    font-size: 12px;
+
+    opacity: 0.8;
+}
+
+.intel-card h2 {
+
+    margin-top: 6px;
+
+    color: #3fb8ff;
+
+    font-size: 24px;
+}

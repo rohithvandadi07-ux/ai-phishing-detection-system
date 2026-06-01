@@ -1,19 +1,5 @@
-from transformers import pipeline
-
 # ---------------------------------------------------
-# LOAD DISTILBERT PIPELINE
-# ---------------------------------------------------
-
-classifier = pipeline(
-
-    "text-classification",
-
-    model=
-    "distilbert-base-uncased-finetuned-sst-2-english"
-)
-
-# ---------------------------------------------------
-# PHISHING KEYWORDS
+# PHISHING KEYWORDS ENGINE
 # ---------------------------------------------------
 
 PHISHING_WORDS = [
@@ -31,7 +17,43 @@ PHISHING_WORDS = [
     "wallet",
     "crypto",
     "suspended",
-    "unlock"
+    "unlock",
+    "billing",
+    "authenticate",
+    "recovery",
+    "otp"
+
+]
+
+# ---------------------------------------------------
+# TRUSTED DOMAINS
+# ---------------------------------------------------
+
+SAFE_DOMAINS = [
+
+    "google.com",
+    "github.com",
+    "openai.com",
+    "microsoft.com",
+    "apple.com",
+    "amazon.com",
+    "youtube.com",
+    "linkedin.com",
+
+    "facebook.com",
+    "instagram.com",
+    "x.com",
+    "twitter.com",
+
+    "stackoverflow.com",
+    "reddit.com",
+
+    "netflix.com",
+    "adobe.com",
+
+    "oracle.com",
+    "ibm.com"
+
 ]
 
 # ---------------------------------------------------
@@ -45,88 +67,173 @@ def semantic_phishing_check(url):
         text = url.lower()
 
         # ---------------------------------------------------
-        # KEYWORD SCORE
+        # SAFE DOMAIN OVERRIDE
+        # ---------------------------------------------------
+
+        if any(
+
+            domain in text
+
+            for domain in SAFE_DOMAINS
+
+        ):
+
+            return {
+
+                "score": 0.0,
+
+                "confidence": 0.0,
+
+                "label": "SAFE_DOMAIN",
+
+                "reasons": []
+
+            }
+
+        # ---------------------------------------------------
+        # KEYWORD MATCHING
         # ---------------------------------------------------
 
         keyword_hits = [
 
-            word for word in PHISHING_WORDS
+            word
+
+            for word in PHISHING_WORDS
+
             if word in text
+
         ]
 
-        keyword_score = (
+        # ---------------------------------------------------
+        # SCORE
+        # ---------------------------------------------------
+
+        ai_score = (
+
             len(keyword_hits) * 0.08
+
         )
 
-        # ---------------------------------------------------
-        # DISTILBERT INFERENCE
-        # ---------------------------------------------------
-
-        result = classifier(text)[0]
-
-        label =result["label"]
-
-        confidence =float(result["score"])
-
-        # ---------------------------------------------------
-        # AI SCORE
-        # ---------------------------------------------------
-
-        ai_score = keyword_score
-
         reasons = []
+
+        # ---------------------------------------------------
+        # REASONS
+        # ---------------------------------------------------
 
         if keyword_hits:
 
             reasons.append(
 
-                f"Semantic phishing keywords detected: {', '.join(keyword_hits)}"
+                "Semantic phishing keywords detected: "
+
+                + ", ".join(keyword_hits)
+
             )
 
-        # ---------------------------------------------------
-        # SUSPICIOUS NLP
-        # ---------------------------------------------------
+        if len(keyword_hits) >= 2:
 
-        if confidence > 0.90:
-
-            ai_score += 0.30
+            ai_score += 0.25
 
             reasons.append(
 
-                "DistilBERT detected suspicious semantic structure"
+                "Multiple phishing keywords detected"
+
+            )
+
+        if len(keyword_hits) >= 4:
+
+            ai_score += 0.20
+
+            reasons.append(
+
+                "High concentration of phishing language"
+
             )
 
         # ---------------------------------------------------
-        # FINAL SCORE
+        # URL STRUCTURE SIGNALS
         # ---------------------------------------------------
 
-        if ai_score > 1:
+        if "@" in text:
 
-            ai_score = 1
+            ai_score += 0.15
+
+            reasons.append(
+
+                "@ symbol obfuscation detected"
+
+            )
+
+        if text.count("-") >= 3:
+
+            ai_score += 0.10
+
+            reasons.append(
+
+                "Multiple hyphens detected"
+
+            )
+
+        if text.count(".") >= 4:
+
+            ai_score += 0.10
+
+            reasons.append(
+
+                "Too many subdomains detected"
+
+            )
+
+        # ---------------------------------------------------
+        # CLAMP
+        # ---------------------------------------------------
+
+        ai_score = min(
+
+            ai_score,
+
+            1.0
+
+        )
 
         return {
 
-            "score": round(ai_score, 4),
+            "score": round(
 
-            "confidence": round(confidence, 4),
+                ai_score,
 
-            "label": label,
+                4
+
+            ),
+
+            "confidence": round(
+
+                ai_score,
+
+                4
+
+            ),
+
+            "label": "URL_ANALYZER",
 
             "reasons": reasons
+
         }
 
     except Exception as e:
 
         return {
 
-            "score": 0,
+            "score": 0.0,
 
-            "confidence": 0,
+            "confidence": 0.0,
 
             "label": "ERROR",
 
             "reasons": [
 
                 str(e)
+
             ]
+
         }

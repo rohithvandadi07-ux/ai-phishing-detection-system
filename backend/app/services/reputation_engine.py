@@ -180,13 +180,22 @@ def analyze_reputation(url):
 
         if brand in domain:
 
-            legit_domains = [
+            trusted_patterns = [
 
                 f"{brand}.com",
-                f"www.{brand}.com"
+                f".{brand}.com"
+
             ]
 
-            if domain not in legit_domains:
+            is_legit = any(
+
+                domain == p.lstrip(".")
+                or domain.endswith(p)
+
+                for p in trusted_patterns
+            )
+
+            if not is_legit:
 
                 score += 35
 

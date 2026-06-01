@@ -92,6 +92,25 @@ const scanStatus =
         "scanStatus"
     );
 
+const reputationLevel =
+    document.getElementById(
+        "reputationLevel"
+    );
+
+const reputationScore =
+    document.getElementById(
+        "reputationScore"
+    );
+
+const whoisScore =
+    document.getElementById(
+        "whoisScore"
+    );
+
+const vtStatus =
+    document.getElementById(
+        "vtStatus"
+    );
 // --------------------------------------------------
 // STATUS UI
 // --------------------------------------------------
@@ -248,6 +267,7 @@ function updateAIScores(
         ).toFixed(0)}%`;
 }
 
+
 // --------------------------------------------------
 // CLEAN REASON TEXT
 // --------------------------------------------------
@@ -285,14 +305,40 @@ function renderReasons(
     reasonsList.innerHTML = "";
 
     // ----------------------------------------------
-    // NO REASONS
+    // IGNORE SAFE / INFORMATIONAL REASONS
+    // ----------------------------------------------
+
+    const ignoredReasons = [
+
+        "Old established domain",
+
+        "Registrar not in trusted list",
+
+        "Trusted registrar detected",
+
+        "SAFE domain detected",
+
+        "Domain age indicates legitimacy"
+
+    ];
+
+    const filteredReasons = (
+
+        result.reasons || []
+
+    ).filter(
+
+        reason => !ignoredReasons.includes(reason)
+
+    );
+
+    // ----------------------------------------------
+    // NO THREAT REASONS
     // ----------------------------------------------
 
     if (
 
-        !result.reasons ||
-
-        result.reasons.length === 0
+        filteredReasons.length === 0
 
     ) {
 
@@ -317,7 +363,7 @@ function renderReasons(
     // SHOW REASONS
     // ----------------------------------------------
 
-    result.reasons
+    filteredReasons
         .slice(0, 6)
         .forEach((reason) => {
 
@@ -524,6 +570,10 @@ function updatePopup(
         result.ai_engine
     );
 
+    updateThreatIntel(
+        result.ai_engine
+    );
+
     // ----------------------------------------------
     // REASONS
     // ----------------------------------------------
@@ -608,3 +658,46 @@ loadDashboard();
 console.log(
     "Enterprise AI Cybersecurity Dashboard Loaded"
 );
+
+function updateThreatIntel(ai) {
+
+    if (!ai) return;
+
+    const reputation =
+        document.getElementById(
+            "reputationScore"
+        );
+
+    const domainAge =
+        document.getElementById(
+            "domainAge"
+        );
+
+    const vtDetections =
+        document.getElementById(
+            "vtDetections"
+        );
+
+    const trustScore =
+        document.getElementById(
+            "trustScore"
+        );
+
+    if (reputation)
+        reputation.innerText =
+            ai.reputation_score ?? "--";
+
+    if (domainAge)
+        domainAge.innerText =
+            ai.domain_age_days
+                ? `${ai.domain_age_days}d`
+                : "--";
+
+    if (vtDetections)
+        vtDetections.innerText =
+            ai.virustotal_detections ?? "0";
+
+    if (trustScore)
+        trustScore.innerText =
+            ai.trust_score ?? "--";
+}

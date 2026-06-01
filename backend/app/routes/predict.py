@@ -125,26 +125,19 @@ router = APIRouter()
 # ---------------------------------------------------
 
 SUSPICIOUS_KEYWORDS = [
-
     "login",
     "verify",
     "secure",
     "account",
     "update",
     "bank",
-    "paypal",
-    "amazon",
     "wallet",
     "signin",
     "password",
     "otp",
     "billing",
     "crypto",
-    "gift",
-    "microsoft",
-    "google",
-    "apple"
-
+    "gift"
 ]
 
 # ---------------------------------------------------
@@ -426,7 +419,7 @@ def predict(
         # BOOST HEURISTICS
         # ---------------------------------------------------
 
-        prob += (heuristic_score / 100) * 0.25
+        prob += (heuristic_score / 100) * 0.10
 
         prob = min(prob, 1.0)
 
@@ -459,6 +452,29 @@ def predict(
         # ---------------------------------------------------
 
         whois_result = analyze_domain(url)
+        
+        trusted_domains = [
+
+            "google.com",
+            "github.com",
+            "openai.com",
+            "youtube.com",
+            "linkedin.com",
+            "amazon.com",
+            "wikipedia.org",
+            "microsoft.com"
+
+        ]
+
+        hostname = urlparse(url).netloc.lower()
+
+        if hostname.startswith("www."):
+
+            hostname = hostname[4:]
+
+        if hostname in trusted_domains:
+
+            whois_result["score"] = 0
 
         reasons.extend(
             whois_result["indicators"]
@@ -533,11 +549,11 @@ def predict(
         risk_score = int(prob * 100)
 
         risk_score += int(
-            reputation_score * 0.35
+            reputation_score * 0.15
         )
 
         risk_score += int(
-            whois_result["score"] * 0.25
+            whois_result["score"] * 0.10
         )
 
         if vt_result["status"] == "malicious":
@@ -584,7 +600,7 @@ def predict(
 
             PREDICTION_MALICIOUS
 
-            if risk_level != RISK_SAFE
+            if risk_score >= 60
 
             else PREDICTION_SAFE
 

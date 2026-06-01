@@ -214,11 +214,11 @@ def analyze_domain(url):
 
         else:
 
-            indicators.append(
-                "Unknown or less trusted registrar"
-            )
+            # informational only
 
-            trust_score -= 10
+            indicators.append(
+                "Registrar not in trusted list"
+            )
 
         # ---------------------------------------------------
         # WHOIS PRIVACY

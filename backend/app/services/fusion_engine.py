@@ -17,10 +17,6 @@ lgb_model = pickle.load(
     open("models/lgb_model_small.pkl", "rb")
 )
 
-rf_model = pickle.load(
-    open("models/rf_model.pkl", "rb")
-)
-
 scaler = pickle.load(
     open("models/scaler.pkl", "rb")
 )
@@ -54,25 +50,10 @@ def fusion_predict(
     )
 
     # ---------------------------------------------------
-    # RANDOM FOREST
+    # RF REMOVED
     # ---------------------------------------------------
 
-    try:
-
-        rf_prob = float(
-
-            rf_model.predict_proba(
-                features_scaled
-            )[0][1]
-        )
-
-    except Exception:
-
-        # -----------------------------------------------
-        # FALLBACK
-        # -----------------------------------------------
-
-        rf_prob = lgb_prob
+    rf_prob = lgb_prob
 
     # ---------------------------------------------------
     # DISTILBERT
@@ -104,56 +85,47 @@ def fusion_predict(
     )
 
     # ---------------------------------------------------
-    # INITIAL AI FUSION
+    # HYBRID FUSION
     # ---------------------------------------------------
 
     hybrid_probability = (
 
-        (0.40 * lgb_prob) +
+        (0.60 * lgb_prob) +
 
-        (0.25 * rf_prob) +
-
-        (0.20 * bert_prob) +
+        (0.25 * bert_prob) +
 
         (0.15 * vt_prob)
+
     )
 
     # ---------------------------------------------------
-    # SMART URL HEURISTICS
+    # URL ANALYSIS
     # ---------------------------------------------------
+
+    lowered_url = url.lower()
 
     suspicious_terms = [
 
         "login",
         "verify",
         "secure",
-        "update",
-        "bank",
-        "wallet",
         "signin",
         "account",
         "billing",
-        "paypal",
-        "amazon",
         "otp",
         "confirm",
         "authenticate",
-        "support",
         "recovery"
-    ]
 
-    lowered_url = url.lower()
+    ]
 
     keyword_hits = sum(
 
         term in lowered_url
 
         for term in suspicious_terms
-    )
 
-    # ---------------------------------------------------
-    # PHISHING KEYWORD BOOST
-    # ---------------------------------------------------
+    )
 
     if keyword_hits >= 3:
 
@@ -167,20 +139,20 @@ def fusion_predict(
     # DOMAIN TRICKS
     # ---------------------------------------------------
 
-    if "@" in url:
+    if "@" in lowered_url:
 
         hybrid_probability += 0.08
 
-    if "-" in url:
+    if lowered_url.count("-") >= 3:
 
-        hybrid_probability += 0.03
+        hybrid_probability += 0.05
 
-    if url.count(".") >= 4:
+    if lowered_url.count(".") >= 4:
 
         hybrid_probability += 0.08
 
     # ---------------------------------------------------
-    # SUSPICIOUS TLDs
+    # SUSPICIOUS TLDS
     # ---------------------------------------------------
 
     suspicious_tlds = [
@@ -192,6 +164,7 @@ def fusion_predict(
         ".ga",
         ".cf",
         ".gq"
+
     ]
 
     if any(
@@ -199,6 +172,7 @@ def fusion_predict(
         lowered_url.endswith(tld)
 
         for tld in suspicious_tlds
+
     ):
 
         hybrid_probability += 0.10
@@ -208,38 +182,49 @@ def fusion_predict(
     # ---------------------------------------------------
 
     if lowered_url.startswith(
+
         "https://"
+
     ):
 
-        hybrid_probability -= 0.03
+        hybrid_probability -= 0.05
 
     # ---------------------------------------------------
     # TRUSTED DOMAINS
     # ---------------------------------------------------
 
-    trusted_keywords = [
+    trusted_domains = [
 
         "google.com",
         "github.com",
-        "microsoft.com",
-        "openai.com"
+        "openai.com",
+        "youtube.com",
+        "amazon.com",
+        "linkedin.com",
+        "stackoverflow.com",
+        "wikipedia.org",
+        "microsoft.com"
+
     ]
 
     if any(
 
         trusted in lowered_url
 
-        for trusted in trusted_keywords
+        for trusted in trusted_domains
+
     ):
 
-        hybrid_probability -= 0.15
+        hybrid_probability -= 0.40
 
     # ---------------------------------------------------
-    # VIRUSTOTAL BOOST
+    # VT BOOST
     # ---------------------------------------------------
 
     if vt_result.get(
+
         "status"
+
     ) == "malicious":
 
         hybrid_probability += 0.20
@@ -255,17 +240,14 @@ def fusion_predict(
         0.0,
 
         1.0
+
     )
 
     # ---------------------------------------------------
-    # AI REASONS
+    # REASONS
     # ---------------------------------------------------
 
     ai_reasons = []
-
-    # ---------------------------------------------------
-    # HYBRID SCORE
-    # ---------------------------------------------------
 
     if hybrid_probability >= 0.90:
 
@@ -285,50 +267,23 @@ def fusion_predict(
             "Moderate suspicious activity detected"
         )
 
-    # ---------------------------------------------------
-    # LIGHTGBM
-    # ---------------------------------------------------
-
     if lgb_prob >= 0.80:
 
         ai_reasons.append(
             "LightGBM detected phishing URL patterns"
         )
 
-    # ---------------------------------------------------
-    # RF
-    # ---------------------------------------------------
-
-    if rf_prob >= 0.80:
-
-        ai_reasons.append(
-            "Random Forest detected malicious structure"
-        )
-
-    # ---------------------------------------------------
-    # DISTILBERT
-    # ---------------------------------------------------
-
     ai_reasons.extend(
         bert_reasons
     )
-
-    # ---------------------------------------------------
-    # VIRUSTOTAL SIGNALS
-    # ---------------------------------------------------
 
     if vt_result.get(
         "status"
     ) == "malicious":
 
         ai_reasons.append(
-            f"VirusTotal flagged URL using "
-            f"{vt_result.get('malicious', 0)} engines"
+            f"VirusTotal flagged URL using {vt_result.get('malicious',0)} engines"
         )
-
-    # ---------------------------------------------------
-    # URL SIGNALS
-    # ---------------------------------------------------
 
     if keyword_hits >= 2:
 
@@ -341,22 +296,19 @@ def fusion_predict(
         lowered_url.endswith(tld)
 
         for tld in suspicious_tlds
+
     ):
 
         ai_reasons.append(
             "Suspicious domain extension detected"
         )
 
-    # ---------------------------------------------------
-    # REMOVE DUPLICATES
-    # ---------------------------------------------------
-
     ai_reasons = list(
         set(ai_reasons)
     )
 
     # ---------------------------------------------------
-    # FINAL RETURN
+    # RETURN
     # ---------------------------------------------------
 
     return {
@@ -397,4 +349,5 @@ def fusion_predict(
         ),
 
         "reasons": ai_reasons
+
     }
