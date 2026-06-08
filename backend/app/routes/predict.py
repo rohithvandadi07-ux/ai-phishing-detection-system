@@ -661,6 +661,24 @@ def predict(
                 "whois_score":
                     whois_result["score"],
 
+                "trust_score":
+                    whois_result.get(
+                        "trust_score",
+                        0
+                    ),
+
+                "domain_age_days":
+                    whois_result.get(
+                        "domain_age_days",
+                        None
+                    ),
+
+                "virustotal_detections":
+                    vt_result.get(
+                        "malicious",
+                        0
+                    ),
+
                 "virustotal":
                     vt_result
             }

@@ -97,9 +97,9 @@ const reputationLevel =
         "reputationLevel"
     );
 
-const reputationScore =
+const threatReputation =
     document.getElementById(
-        "reputationScore"
+        "threatReputation"
     );
 
 const whoisScore =
@@ -663,11 +663,7 @@ function updateThreatIntel(ai) {
 
     if (!ai) return;
 
-    const reputation =
-        document.getElementById(
-            "reputationScore"
-        );
-
+    
     const domainAge =
         document.getElementById(
             "domainAge"
@@ -683,9 +679,23 @@ function updateThreatIntel(ai) {
             "trustScore"
         );
 
-    if (reputation)
-        reputation.innerText =
-            ai.reputation_score ?? "--";
+    const threatReputation =
+        document.getElementById(
+            "threatReputation"
+        );
+
+    const reputationLevel =
+        document.getElementById(
+            "reputationLevel"
+        );
+
+    if (threatReputation)
+        threatReputation.innerText =
+            ai.reputation_level ?? "SAFE";
+
+    if (reputationLevel)
+        reputationLevel.innerText =
+            ai.reputation_level ?? "SAFE";
 
     if (domainAge)
         domainAge.innerText =
