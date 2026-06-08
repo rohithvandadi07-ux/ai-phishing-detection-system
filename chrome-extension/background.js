@@ -474,7 +474,17 @@ async function forceMalicious(
 
             semantic_confidence: 0.97,
 
-            hybrid_probability: 0.998
+            hybrid_probability: 0.998,
+
+            reputation_score: 95,
+
+            reputation_level: "CRITICAL",
+
+            trust_score: 0,
+
+            domain_age_days: null,
+
+            virustotal_detections: 0
         },
 
         reasons: [

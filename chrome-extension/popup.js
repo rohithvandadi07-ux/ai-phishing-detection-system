@@ -661,6 +661,8 @@ console.log(
 
 function updateThreatIntel(ai) {
 
+    console.log("AI ENGINE:", ai);
+
     if (!ai) return;
 
     
@@ -710,4 +712,9 @@ function updateThreatIntel(ai) {
     if (trustScore)
         trustScore.innerText =
             ai.trust_score ?? "--";
-}
+
+    if (reputationScore)
+        reputationScore.innerText =
+            ai.reputation_score ?? "0";
+
+    }
