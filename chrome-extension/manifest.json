@@ -8,11 +8,12 @@
   "version": "1.0.0",
 
   "permissions": [
-    "tabs",
-    "storage",
-    "activeTab",
-    "scripting"
-  ],
+  "tabs",
+  "storage",
+  "activeTab",
+  "scripting",
+  "notifications"
+],
 
   "host_permissions": [
     "<all_urls>",

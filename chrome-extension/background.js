@@ -314,6 +314,33 @@ function updateBadge(
 }
 
 // ---------------------------------------------------
+// SHOW NOTIFICATION
+// ---------------------------------------------------
+
+function showThreatNotification(
+    url,
+    result
+) {
+
+    chrome.notifications.create({
+
+        type: "basic",
+
+        iconUrl:
+            "icons/icon128.png",
+
+        title:
+            "🚨 AI Phishing Shield",
+
+        message:
+            `Blocked phishing site\nRisk Score: ${result.risk_score}\nThreat Level: ${result.risk_level}`,
+
+        priority: 2
+
+    });
+}
+
+// ---------------------------------------------------
 // SAVE HISTORY
 // ---------------------------------------------------
 
@@ -513,6 +540,11 @@ async function forceMalicious(
         forcedResult
     );
 
+    showThreatNotification(
+        url,
+        forcedResult
+    );
+
     updateBadge(
         "malicious",
         tabId
@@ -707,6 +739,11 @@ async function scanUrl(
 
             console.log(
                 "Malicious URL Blocked"
+            );
+
+            showThreatNotification(
+                url,
+                result
             );
 
             await redirectToBlockPage(
