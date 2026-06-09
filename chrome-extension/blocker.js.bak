@@ -1,0 +1,84 @@
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
+
+const url =
+    params.get("url") || "";
+
+const risk =
+    params.get("risk") || "0";
+
+const level =
+    params.get("level") || "UNKNOWN";
+
+const confidence =
+    params.get("confidence") || "0";
+
+document.getElementById(
+    "blockedUrl"
+).innerText = url;
+
+document.getElementById(
+    "riskScore"
+).innerText = risk;
+
+document.getElementById(
+    "threatLevel"
+).innerText = level;
+
+document.getElementById(
+    "confidence"
+).innerText =
+    `${(
+        Number(confidence) * 100
+    ).toFixed(1)}%`;
+
+const reasonsDiv =
+    document.getElementById(
+        "reasons"
+    );
+
+chrome.storage.local.get(
+    "latestScan",
+    (data) => {
+
+        const reasons =
+            data?.latestScan?.result?.reasons || [];
+
+        reasons.forEach(
+            reason => {
+
+                const div =
+                    document.createElement(
+                        "div"
+                    );
+
+                div.className =
+                    "reason";
+
+                div.innerText =
+                    reason;
+
+                reasonsDiv.appendChild(
+                    div
+                );
+            }
+        );
+    }
+);
+
+document.getElementById(
+    "goBack"
+).onclick = () => {
+
+    history.back();
+};
+
+document.getElementById(
+    "proceed"
+).onclick = () => {
+
+    window.location.href =
+        url;
+};  

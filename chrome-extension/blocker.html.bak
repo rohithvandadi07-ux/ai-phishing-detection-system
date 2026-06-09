@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>AI Phishing Shield</title>
+
+    <link
+        rel="stylesheet"
+        href="blocker.css"
+    >
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="logo">
+        🚨 AI Phishing Shield
+    </div>
+
+    <div class="subtitle">
+        Real-Time Cybersecurity Protection
+    </div>
+
+    <div class="alert-card">
+
+        <div class="alert-title">
+            THREAT BLOCKED
+        </div>
+
+        <p>
+            This website has been identified
+            as a potential phishing threat.
+        </p>
+
+        <div
+            class="url-box"
+            id="blockedUrl"
+        >
+        </div>
+
+    </div>
+
+    <div class="grid">
+
+        <div class="card">
+
+            <div class="card-title">
+                Risk Score
+            </div>
+
+            <div
+                class="card-value"
+                id="riskScore"
+            >
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <div class="card-title">
+                Threat Level
+            </div>
+
+            <div
+                class="card-value"
+                id="threatLevel"
+            >
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <div class="card-title">
+                Confidence
+            </div>
+
+            <div
+                class="card-value"
+                id="confidence"
+            >
+            </div>
+
+        </div>
+
+    </div>
+
+    <div
+        class="reasons"
+        id="reasons"
+    >
+    </div>
+
+    <div class="buttons">
+
+        <button
+            class="btn safe-btn"
+            id="goBack"
+        >
+            Go Back
+        </button>
+
+        <button
+            class="btn proceed-btn"
+            id="proceed"
+        >
+            Proceed Anyway
+        </button>
+
+    </div>
+
+</div>
+
+<script src="blocker.js"></script>
+
+</body>
+</html>

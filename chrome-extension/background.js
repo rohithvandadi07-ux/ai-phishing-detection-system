@@ -421,6 +421,10 @@ async function redirectToBlockPage(
         )
     );
 
+    chrome.storage.local.set({
+        lastBlockedUrl: url
+    });
+
     const blockPage =
 
         chrome.runtime.getURL(

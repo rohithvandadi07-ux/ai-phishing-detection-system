@@ -1,0 +1,415 @@
+body {
+
+
+margin: 0;
+padding: 0;
+
+min-height: 100vh;
+
+display: flex;
+justify-content: center;
+align-items: center;
+
+font-family:
+    "Segoe UI",
+    sans-serif;
+
+background:
+    radial-gradient(
+        circle at top,
+        #071a45,
+        #020817 70%
+    );
+
+color: white;
+
+
+}
+
+.container {
+
+width: 92%;
+max-width: 1200px;
+
+background:
+    linear-gradient(
+        180deg,
+        #08152f,
+        #071225
+    );
+
+border-radius: 28px;
+
+padding: 40px;
+
+border: 1px solid
+    rgba(59,184,255,.2);
+
+box-shadow:
+    0 0 50px rgba(0,0,0,.6),
+    0 0 40px rgba(255,0,0,.15);
+
+
+}
+
+.hero {
+
+
+text-align: center;
+
+margin-bottom: 25px;
+
+
+}
+
+.shield-icon {
+
+    font-size: 72px;
+
+    text-align: center;
+
+    margin-bottom: 10px;
+
+    animation: pulse 2s infinite;
+}
+
+.logo {
+
+
+font-size: 52px;
+
+font-weight: 800;
+
+color: #4fc3ff;
+
+text-shadow:
+    0 0 20px rgba(79,195,255,.4);
+
+
+}
+
+.subtitle {
+
+
+margin-top: 8px;
+
+color: #b5c8e8;
+
+font-size: 16px;
+
+
+}
+
+.alert-card {
+
+
+background:
+    linear-gradient(
+        135deg,
+        #8b0000,
+        #ff0000,
+        #ff2f2f
+    );
+
+border-radius: 24px;
+
+padding: 30px;
+
+text-align: center;
+
+box-shadow:
+    0 0 30px rgba(255,0,0,.3);
+
+
+}
+
+.badge {
+
+
+display: inline-block;
+
+background:
+    rgba(0,0,0,.25);
+
+padding: 8px 16px;
+
+border-radius: 999px;
+
+font-weight: bold;
+
+margin-bottom: 15px;
+
+
+}
+
+.alert-title {
+
+
+font-size: 54px;
+
+font-weight: 900;
+
+letter-spacing: 1px;
+
+margin-bottom: 12px;
+
+
+}
+
+.alert-card p {
+
+
+font-size: 18px;
+
+color: white;
+
+
+}
+
+.url-box {
+
+
+margin-top: 20px;
+
+background:
+    rgba(0,0,0,.25);
+
+padding: 15px;
+
+border-radius: 12px;
+
+word-break: break-word;
+
+font-weight: bold;
+
+
+}
+
+.threat-meter-section {
+
+
+margin-top: 30px;
+
+
+}
+
+.threat-meter-section h3 {
+
+margin-bottom: 12px;
+
+}
+
+.meter-container {
+
+height: 16px;
+
+border-radius: 20px;
+
+overflow: hidden;
+
+background: #16284d;
+
+}
+
+.meter-fill {
+
+width: 99%;
+
+height: 100%;
+
+background:
+    linear-gradient(
+        90deg,
+        #00ff66,
+        #ffcc00,
+        #ff0000
+    );
+
+}
+
+.meter-text {
+
+text-align: right;
+
+margin-top: 8px;
+
+font-weight: bold;
+
+color: #4fc3ff;
+
+}
+
+.grid {
+
+margin-top: 25px;
+
+display: grid;
+
+grid-template-columns:
+    repeat(3,1fr);
+
+gap: 16px;
+
+}
+
+.card {
+
+background: #102044;
+
+border-radius: 18px;
+
+padding: 20px;
+
+text-align: center;
+
+transition: .3s;
+
+}
+
+.card:hover {
+
+transform:
+    translateY(-4px);
+
+box-shadow:
+    0 0 20px rgba(79,195,255,.15);
+
+}
+
+.card-title {
+
+color: #9eb4d8;
+
+font-size: 14px;
+
+}
+
+.card-value {
+
+margin-top: 12px;
+
+font-size: 34px;
+
+font-weight: bold;
+
+color: #4fc3ff;
+
+}
+
+.section-title {
+
+margin-top: 35px;
+
+margin-bottom: 15px;
+
+color: #4fc3ff;
+
+}
+
+.reason {
+
+background: #1a2a49;
+
+border-left: 5px solid #ff5555;
+
+border-radius: 12px;
+
+padding: 16px;
+
+margin-bottom: 12px;
+
+font-size: 15px;
+
+}
+
+.recommendation {
+
+background: #13284c;
+
+padding: 14px;
+
+border-radius: 12px;
+
+margin-bottom: 10px;
+
+}
+
+.buttons {
+
+margin-top: 35px;
+
+display: flex;
+
+justify-content: center;
+
+gap: 20px;
+
+flex-wrap: wrap;
+
+}
+
+.btn {
+
+border: none;
+
+padding: 16px 28px;
+
+border-radius: 12px;
+
+font-size: 16px;
+
+font-weight: bold;
+
+cursor: pointer;
+
+transition: .25s;
+
+}
+
+.btn:hover {
+
+transform:
+    translateY(-3px);
+
+}
+
+.safe-btn {
+
+background: #00c853;
+
+color: white;
+
+}
+
+.proceed-btn {
+
+background: #ff9800;
+
+color: white;
+
+}
+
+@keyframes pulse {
+
+0% {
+    transform: scale(1);
+}
+
+50% {
+    transform: scale(1.08);
+}
+
+100% {
+    transform: scale(1);
+}
+
+}
+
+.btn:disabled {
+
+    opacity: 0.5;
+
+    cursor: not-allowed;
+
+    transform: none;
+}

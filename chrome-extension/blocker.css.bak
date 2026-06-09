@@ -1,0 +1,165 @@
+body {
+    margin: 0;
+    padding: 0;
+    background: #050b1d;
+    color: white;
+    font-family: Arial, sans-serif;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    min-height: 100vh;
+}
+
+.container {
+    width: 90%;
+    max-width: 850px;
+
+    background: #09152f;
+
+    border-radius: 20px;
+
+    padding: 40px;
+
+    box-shadow:
+        0 0 25px rgba(255,0,0,0.3);
+}
+
+.logo {
+    text-align: center;
+
+    font-size: 36px;
+    font-weight: bold;
+
+    color: #3bb8ff;
+}
+
+.subtitle {
+    text-align: center;
+
+    color: #cfd8e3;
+
+    margin-top: 10px;
+}
+
+.alert-card {
+    margin-top: 30px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #8b0000,
+            #ff2b2b
+        );
+
+    border-radius: 20px;
+
+    padding: 30px;
+
+    text-align: center;
+}
+
+.alert-title {
+    font-size: 48px;
+    font-weight: bold;
+}
+
+.url-box {
+    margin-top: 20px;
+
+    background: rgba(0,0,0,0.25);
+
+    padding: 15px;
+
+    border-radius: 10px;
+
+    word-break: break-all;
+}
+
+.grid {
+    margin-top: 30px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 15px;
+}
+
+.card {
+    background: #101d3c;
+
+    border-radius: 15px;
+
+    padding: 20px;
+
+    text-align: center;
+}
+
+.card-title {
+    color: #9fb4d4;
+
+    font-size: 14px;
+}
+
+.card-value {
+    margin-top: 10px;
+
+    font-size: 28px;
+
+    font-weight: bold;
+
+    color: #3bb8ff;
+}
+
+.reasons {
+    margin-top: 30px;
+}
+
+.reason {
+    background: #182842;
+
+    margin-bottom: 12px;
+
+    padding: 15px;
+
+    border-left: 5px solid #ff4b4b;
+
+    border-radius: 10px;
+}
+
+.buttons {
+    margin-top: 35px;
+
+    display: flex;
+
+    gap: 20px;
+
+    justify-content: center;
+}
+
+.btn {
+    border: none;
+
+    border-radius: 10px;
+
+    padding: 15px 25px;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+    font-weight: bold;
+}
+
+.safe-btn {
+    background: #00c853;
+    color: white;
+}
+
+.proceed-btn {
+    background: #ff9800;
+    color: white;
+}

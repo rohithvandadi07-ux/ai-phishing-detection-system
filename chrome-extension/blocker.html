@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="UTF-8">  
+
+
+<title>AI Phishing Shield</title>
+
+<link
+    rel="stylesheet"
+    href="blocker.css"
+>
+
+
+</head>
+
+<body>
+
+<div class="container">
+
+
+<div class="hero">
+
+    <div class="shield-icon">
+        ⚠️
+    </div>
+
+    <div class="logo">
+        AI Phishing Shield
+    </div>
+
+    <div class="subtitle">
+        Real-Time Cybersecurity Protection
+    </div>
+
+</div>
+
+<div class="alert-card">
+
+    <div class="badge">
+        🚫 WEBSITE BLOCKED
+    </div>
+
+    <div class="alert-title">
+        PHISHING WEBSITE DETECTED
+    </div>
+
+    <p>
+        Access has been blocked to protect
+        your credentials and personal data.
+    </p>
+
+    <div
+        class="url-box"
+        id="blockedUrl"
+    >
+    </div>
+
+</div>
+
+<div class="threat-meter-section">
+
+    <h3>
+        Threat Level
+    </h3>
+
+    <div class="meter-container">
+
+        <div
+            class="meter-fill"
+            id="meterFill"
+        >
+        </div>
+
+    </div>
+
+    <div
+        class="meter-text"
+        id="meterText"
+    >
+        99%
+    </div>
+
+</div>
+
+<div class="grid">
+
+    <div class="card">
+
+        <div class="card-title">
+            Risk Score
+        </div>
+
+        <div
+            class="card-value"
+            id="riskScore"
+        >
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <div class="card-title">
+            Threat Level
+        </div>
+
+        <div
+            class="card-value"
+            id="threatLevel"
+        >
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <div class="card-title">
+            Confidence
+        </div>
+
+        <div
+            class="card-value"
+            id="confidence"
+        >
+        </div>
+
+    </div>
+
+</div>
+
+<h2 class="section-title">
+    Threat Analysis
+</h2>
+
+<div
+    class="reasons"
+    id="reasons"
+>
+</div>
+
+<h2 class="section-title">
+    Security Recommendations
+</h2>
+
+<div class="recommendations">
+
+    <div class="recommendation">
+        ✓ Do not enter passwords
+    </div>
+
+    <div class="recommendation">
+        ✓ Do not enter OTP codes
+    </div>
+
+    <div class="recommendation">
+        ✓ Do not download files
+    </div>
+
+    <div class="recommendation">
+        ✓ Leave this website immediately
+    </div>
+
+</div>
+
+<div class="buttons">
+
+    <button
+        class="btn safe-btn"
+        id="goBack"
+    >
+        ← Return To Safety
+    </button>
+
+    <button
+        class="btn proceed-btn"
+        id="proceed"
+    >
+        Continue At My Own Risk
+    </button>
+
+</div>
+
+
+</div>
+
+<script src="blocker.js"></script>
+
+</body>
+
+</html>
