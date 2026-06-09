@@ -111,6 +111,11 @@ const vtStatus =
     document.getElementById(
         "vtStatus"
     );
+
+const reputationScore =
+    document.getElementById(
+        "reputationScore"
+    );
 // --------------------------------------------------
 // STATUS UI
 // --------------------------------------------------
@@ -712,9 +717,5 @@ function updateThreatIntel(ai) {
     if (trustScore)
         trustScore.innerText =
             ai.trust_score ?? "--";
-
-    if (reputationScore)
-        reputationScore.innerText =
-            ai.reputation_score ?? "0";
 
     }

@@ -127,9 +127,6 @@ if (proceedBtn) {
 
             proceedBtn.textContent =
                 "Continue At My Own Risk";
-
-            // Auto return to safety
-            window.close();
         }
 
     }, 1000);
