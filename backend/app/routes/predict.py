@@ -106,6 +106,10 @@ from app.utils.whois_intel import (
     analyze_domain
 )
 
+from app.utils.homograph_detector import (
+    detect_homograph_attack
+)
+
 # ---------------------------------------------------
 # REPUTATION ENGINE
 # ---------------------------------------------------
@@ -481,6 +485,18 @@ def predict(
         )
 
         # ---------------------------------------------------
+        # HOMOGRAPH DETECTION
+        # ---------------------------------------------------
+
+        homograph_result = detect_homograph_attack(
+            url
+        )
+
+        reasons.extend(
+            homograph_result["indicators"]
+        )
+
+        # ---------------------------------------------------
         # REPUTATION
         # ---------------------------------------------------
 
@@ -590,6 +606,16 @@ def predict(
         ):
 
             risk_score += 10
+
+        # -------------------------------------------
+        # HOMOGRAPH BOOST
+        # -------------------------------------------
+
+        if any(
+            "unicode homograph" in r.lower()
+            for r in reasons
+        ):
+            risk_score += 25
 
         if vt_result["status"] == "malicious":
 
