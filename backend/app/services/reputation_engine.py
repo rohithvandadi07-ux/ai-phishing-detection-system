@@ -29,6 +29,36 @@ TRUSTED_BRANDS = [
 ]
 
 # ---------------------------------------------------
+# TYPOSQUATTING VARIANTS
+# ---------------------------------------------------
+
+TYPOSQUAT_VARIANTS = {
+
+    "google": [
+        "g00gle",
+        "goog1e"
+    ],
+
+    "facebook": [
+        "faceb00k",
+        "facebo0k"
+    ],
+
+    "amazon": [
+        "amaz0n"
+    ],
+
+    "paypal": [
+        "paypa1",
+        "paypai"
+    ],
+
+    "microsoft": [
+        "micr0soft"
+    ]
+}
+
+# ---------------------------------------------------
 # SUSPICIOUS TLDS
 # ---------------------------------------------------
 
@@ -202,6 +232,62 @@ def analyze_reputation(url):
                 indicators.append(
 
                     f"Potential {brand} impersonation detected"
+                )
+
+                break
+
+    # ---------------------------------------------------
+    # TYPOSQUATTING DETECTION
+    # ---------------------------------------------------
+
+    for brand, variants in TYPOSQUAT_VARIANTS.items():
+
+        for variant in variants:
+
+            if variant in domain:
+
+                score += 40
+
+                indicators.append(
+                    f"Possible {brand} typosquatting domain"
+                )
+
+                break
+
+    # ---------------------------------------------------
+    # TYPOSQUATTING DETECTION
+    # ---------------------------------------------------
+
+    for brand, variants in TYPOSQUAT_VARIANTS.items():
+
+        for variant in variants:
+
+            if variant in domain:
+
+                score += 40
+
+                indicators.append(
+
+                    f"Possible {brand} typosquatting domain"
+                )
+
+                break
+
+    # ---------------------------------------------------
+    # TYPOSQUATTING DETECTION
+    # ---------------------------------------------------
+
+    for brand, variants in TYPOSQUAT_VARIANTS.items():
+
+        for variant in variants:
+
+            if variant in domain:
+
+                score += 40
+
+                indicators.append(
+
+                    f"Possible {brand} typosquatting domain"
                 )
 
                 break

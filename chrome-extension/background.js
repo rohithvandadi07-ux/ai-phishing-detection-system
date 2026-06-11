@@ -611,15 +611,8 @@ async function scanUrl(
         ) {
 
             console.log(
-                "Heuristic phishing detected"
+                "Heuristic phishing detected - continuing AI scan"
             );
-
-            await forceMalicious(
-                tabId,
-                url
-            );
-
-            return;
         }
 
         // -------------------------------------------
@@ -774,13 +767,6 @@ async function scanUrl(
         if (
             looksPhishy(url)
         ) {
-
-            await forceMalicious(
-                tabId,
-                url
-            );
-
-            return;
         }
 
         updateBadge(

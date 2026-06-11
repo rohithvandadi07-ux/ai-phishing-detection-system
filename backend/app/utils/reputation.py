@@ -42,6 +42,36 @@ POPULAR_BRANDS = {
 
 }
 
+# -----------------------------
+# Typosquatting Variants
+# -----------------------------
+
+TYPOSQUAT_VARIANTS = {
+
+    "google": [
+        "g00gle",
+        "goog1e"
+    ],
+
+    "facebook": [
+        "faceb00k",
+        "facebo0k"
+    ],
+
+    "amazon": [
+        "amaz0n"
+    ],
+
+    "paypal": [
+        "paypa1",
+        "paypai"
+    ],
+
+    "microsoft": [
+        "micr0soft"
+    ]
+
+}
 
 # -----------------------------
 # Reputation Analysis Engine
@@ -105,6 +135,22 @@ def analyze_url_reputation(url):
                     )
 
                     reputation_score += 30
+
+        # -----------------------------
+        # Typosquatting Detection
+        # -----------------------------
+
+        for brand, variants in TYPOSQUAT_VARIANTS.items():
+
+            for variant in variants:
+
+                if variant in domain:
+
+                    indicators.append(
+                        f"Possible {brand} typosquatting domain"
+                    )
+
+                    reputation_score += 40
 
         # -----------------------------
         # Numeric-heavy domains

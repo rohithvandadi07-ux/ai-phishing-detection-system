@@ -704,18 +704,30 @@ function updateThreatIntel(ai) {
         reputationLevel.innerText =
             ai.reputation_level ?? "SAFE";
 
-    if (domainAge)
-        domainAge.innerText =
-            ai.domain_age_days
-                ? `${ai.domain_age_days}d`
-                : "--";
+    if (domainAge) {
+
+        if (ai.domain_age_days) {
+
+            const years =
+                (ai.domain_age_days / 365)
+                    .toFixed(1);
+
+            domainAge.innerText =
+                `${years} Years`;
+
+        } else {
+
+            domainAge.innerText =
+                "Not Registered";
+        }
+    }
 
     if (vtDetections)
         vtDetections.innerText =
-            ai.virustotal_detections ?? "0";
+            `${ai.virustotal_detections ?? 0} Detections`;
 
     if (trustScore)
         trustScore.innerText =
-            ai.trust_score ?? "--";
+            `${ai.trust_score ?? "--"}/100`;
 
     }

@@ -542,6 +542,8 @@ def predict(
 
         reasons = list(set(reasons))
 
+        
+
         # ---------------------------------------------------
         # RISK SCORE
         # ---------------------------------------------------
@@ -549,12 +551,45 @@ def predict(
         risk_score = int(prob * 100)
 
         risk_score += int(
-            reputation_score * 0.15
+            reputation_score * 0.35
         )
 
         risk_score += int(
-            whois_result["score"] * 0.10
+            whois_result["score"] * 0.25
         )
+
+        # -------------------------------------------
+        # TYPOSQUATTING BOOST
+        # -------------------------------------------
+
+        if any(
+            "typosquatting" in r.lower()
+            for r in reasons
+        ):
+
+            risk_score += 20
+
+        # -------------------------------------------
+        # BRAND IMPERSONATION BOOST
+        # -------------------------------------------
+
+        if any(
+            "impersonation" in r.lower()
+            for r in reasons
+        ):
+
+            risk_score += 15
+
+        # -------------------------------------------
+        # WHOIS FAILURE BOOST
+        # -------------------------------------------
+
+        if any(
+            "whois lookup failed" in r.lower()
+            for r in reasons
+        ):
+
+            risk_score += 10
 
         if vt_result["status"] == "malicious":
 
