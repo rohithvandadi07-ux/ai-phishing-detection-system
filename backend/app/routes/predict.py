@@ -114,6 +114,10 @@ from app.utils.redirect_intel import (
     analyze_redirects
 )
 
+from app.services.brand_engine import (
+    detect_brand_impersonation
+)
+
 # ---------------------------------------------------
 # REPUTATION ENGINE
 # ---------------------------------------------------
@@ -513,6 +517,23 @@ def predict(
         )
 
         # ---------------------------------------------------
+        # BRAND INTELLIGENCE
+        # ---------------------------------------------------
+
+        brand_result = detect_brand_impersonation(
+            url
+        )
+
+        if brand_result["detected"]:
+
+            reasons.append(
+
+                f"Brand impersonation detected: "
+                f"{brand_result['brand']}"
+
+            )
+
+        # ---------------------------------------------------
         # REPUTATION
         # ---------------------------------------------------
 
@@ -605,12 +626,9 @@ def predict(
         # BRAND IMPERSONATION BOOST
         # -------------------------------------------
 
-        if any(
-            "impersonation" in r.lower()
-            for r in reasons
-        ):
+        if brand_result["detected"]:
 
-            risk_score += 15
+            risk_score += 20
 
         # -------------------------------------------
         # WHOIS FAILURE BOOST
@@ -786,6 +804,12 @@ def predict(
 
                 "final_url":
                     redirect_result["final_url"],
+
+                "impersonated_brand":
+                    brand_result["brand"],
+
+                "brand_confidence":
+                    brand_result["confidence"],
             }
         }
 
