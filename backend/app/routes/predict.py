@@ -110,6 +110,10 @@ from app.utils.homograph_detector import (
     detect_homograph_attack
 )
 
+from app.utils.redirect_intel import (
+    analyze_redirects
+)
+
 # ---------------------------------------------------
 # REPUTATION ENGINE
 # ---------------------------------------------------
@@ -497,6 +501,18 @@ def predict(
         )
 
         # ---------------------------------------------------
+        # REDIRECT INTELLIGENCE
+        # ---------------------------------------------------
+
+        redirect_result = analyze_redirects(
+            url
+        )
+
+        reasons.extend(
+            redirect_result["indicators"]
+        )
+
+        # ---------------------------------------------------
         # REPUTATION
         # ---------------------------------------------------
 
@@ -628,10 +644,29 @@ def predict(
                 90
             )
 
+        # -------------------------------------------
+        # REDIRECT BOOST
+        # -------------------------------------------
+
+        if any(
+            "redirected to different domain"
+            in r.lower()
+            for r in reasons
+        ):
+            risk_score += 5
+
+        if any(
+            "url shortener detected"
+            in r.lower()
+            for r in reasons
+        ):
+            risk_score += 5
+
         risk_score = min(
             risk_score,
             100
         )
+
 
         # ---------------------------------------------------
         # RISK LEVEL
@@ -713,6 +748,9 @@ def predict(
                 "heuristic_score":
                     heuristic_score,
 
+                "redirect_score":
+                    redirect_result["score"],
+
                 "reputation_score":
                     reputation_score,
 
@@ -741,7 +779,13 @@ def predict(
                     ),
 
                 "virustotal":
-                    vt_result
+                    vt_result,
+
+                "redirect_count":
+                    redirect_result["redirect_count"],
+
+                "final_url":
+                    redirect_result["final_url"],
             }
         }
 

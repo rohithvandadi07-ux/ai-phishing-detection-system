@@ -90,11 +90,11 @@ def fusion_predict(
 
     hybrid_probability = (
 
-        (0.60 * lgb_prob) +
+        (0.10 * lgb_prob) +
 
-        (0.25 * bert_prob) +
+        (0.50 * bert_prob) +
 
-        (0.15 * vt_prob)
+        (0.40 * vt_prob)
 
     )
 
