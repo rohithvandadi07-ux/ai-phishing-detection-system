@@ -1,205 +1,241 @@
 # 🛡️ AI Phishing Shield
 
-> AI-powered real-time browser phishing detection and prevention platform.
+> Next-generation AI-powered phishing intelligence and browser security platform.
 
-AI Phishing Shield is a production-grade cybersecurity platform designed to detect, analyze, score, and block phishing and malicious websites in real time using hybrid Artificial Intelligence and browser-native protection systems.
+AI Phishing Shield is an advanced phishing detection and threat intelligence platform designed to identify, analyze, explain, and block phishing attacks in real time.
 
-The platform combines:
-
-- Hybrid AI phishing detection
-- Semantic URL intelligence
-- Real-time browser monitoring
-- Threat intelligence engines
-- Browser-native phishing blocking
-- Risk scoring systems
-- Cloud telemetry
-- AI microservices
-- Threat history analytics
+Unlike traditional phishing detectors that rely primarily on blacklists and signature-based detection, AI Phishing Shield combines machine learning, semantic analysis, threat intelligence, reputation systems, and browser-native protection to detect both known and previously unseen phishing threats.
 
 ---
 
 # 🚀 Vision
 
-AI Phishing Shield aims to become a:
+Build a modern phishing intelligence platform capable of:
 
-```text
-Next-generation AI-powered browser cybersecurity platform
-```
-
-capable of delivering:
-
-- Real-time phishing prevention
-- Zero-day phishing detection
-- Browser-native cyber defense
-- AI-powered threat intelligence
-- Enterprise browser protection
-- Cloud-based security telemetry
-- Multi-browser phishing defense
+* Real-time phishing prevention
+* Brand impersonation detection
+* Zero-day phishing detection
+* Browser-native security protection
+* Threat intelligence enrichment
+* Explainable AI threat analysis
+* Enterprise-ready browser security
 
 ---
 
-# 🔥 Core Product Features
+# 🔥 Key Features
 
-# ✅ Real-Time URL Scanning
+## ✅ Real-Time Browser Protection
 
-The browser extension continuously monitors URLs opened by the user and scans them in real time.
+The browser extension continuously monitors websites visited by the user and evaluates them in real time.
 
-### Features
+Features:
 
-- Instant URL scanning
-- Background tab monitoring
-- Real-time prediction engine
-- Browser-native phishing protection
-- Intelligent phishing blocking
-
----
-
-# ✅ Hybrid AI Detection Engine
-
-AI Phishing Shield uses a layered hybrid AI architecture.
-
-## Current Detection Stack
-
-```text
-Manual Feature Extraction
-        +
-Random Forest
-        +
-LightGBM
-        +
-DistilBERT Semantic AI
-        +
-Threat Intelligence
-        +
-Fusion Risk Engine
-        =
-Final Prediction
-```
+* Real-time URL monitoring
+* Background scanning
+* Automatic threat detection
+* Browser-native phishing blocking
+* Instant threat alerts
 
 ---
 
-# ✅ Semantic Phishing Detection
+## ✅ Hybrid Threat Intelligence Engine
 
-DistilBERT semantic analysis detects:
+AI Phishing Shield combines multiple intelligence layers into a single risk assessment pipeline.
 
-- Obfuscated phishing URLs
-- AI-generated phishing links
-- Brand impersonation
-- Contextual phishing structures
-- Suspicious semantic patterns
-- Semantic phishing indicators
-
----
-
-# ✅ Browser-Native Phishing Blocking
-
-When a malicious website is detected:
-
-- Website access is blocked
-- User is redirected to a warning page
-- Threat explanations are shown
-- Risk score is displayed
-- Confidence score is displayed
-
----
-
-# ✅ Intelligent Risk Scoring System
-
-The platform calculates:
-
-- Threat confidence
-- Risk score
-- Risk level
-- Threat explanations
-- Detection indicators
-
-## Risk Levels
-
-| Risk Score | Level |
-|---|---|
-| 0–34 | SAFE |
-| 35–59 | MEDIUM |
-| 60–79 | HIGH |
-| 80–100 | CRITICAL |
-
----
-
-# ✅ Threat Intelligence Layer
-
-Current intelligence features include:
-
-- Suspicious keyword analysis
-- Entropy analysis
-- URL structure analysis
-- Suspicious TLD analysis
-- Typosquatting detection
-- WHOIS intelligence
-- Domain intelligence
-- Reputation analysis
-- VirusTotal scanning
-- PhishTank verification
-
----
-
-# ✅ Browser Badge Detection System
-
-The extension provides real-time badge indicators.
-
-| Badge | Meaning |
-|---|---|
-| SAFE | Website is safe |
-| BAD | Website is malicious |
-| ERR | Backend/API issue |
-
----
-
-# ✅ Intelligent Cache Engine
-
-AI Phishing Shield includes local threat caching.
-
-## Benefits
-
-- Faster repeated scans
-- Lower latency
-- Reduced backend requests
-- Better extension performance
-- Instant cached predictions
-
----
-
-# ✅ Detection History Dashboard
-
-The dashboard stores:
-
-- Threat history
-- Scan timestamps
-- Threat confidence
-- Risk scores
-- Historical phishing activity
-- Cached threat intelligence
-
----
-
-# 🧠 AI Detection Pipeline
+Current detection architecture:
 
 ```text
 URL
- ↓
-Feature Extraction
- ↓
-Threat Intelligence
- ↓
-Hybrid AI Models
- ↓
-Semantic Analysis
- ↓
-Fusion Risk Engine
- ↓
+ │
+ ├── URL Intelligence
+ ├── LightGBM Analysis
+ ├── DistilBERT Semantic Analysis
+ ├── WHOIS Intelligence
+ ├── Reputation Engine
+ ├── Redirect Intelligence
+ ├── VirusTotal Verification
+ ├── Typosquatting Detection
+ └── Brand Impersonation Detection
+ │
+ ▼
+ Hybrid Risk Fusion Engine
+ │
+ ▼
+ Final Threat Decision
+```
+
+---
+
+## ✅ Semantic Phishing Detection
+
+DistilBERT-based semantic analysis detects:
+
+* Phishing-related language patterns
+* Credential harvesting indicators
+* Obfuscated phishing URLs
+* Authentication-related attacks
+* Suspicious contextual structures
+
+---
+
+## ✅ Brand Impersonation Detection
+
+Detects domains attempting to imitate trusted brands.
+
+Examples:
+
+```text
+g00gle-login.com
+paypa1-verification.net
+micr0soft-auth.xyz
+amaz0n-security-check.com
+```
+
+The system identifies:
+
+* Typosquatting attacks
+* Homograph attacks
+* Brand impersonation attempts
+* Credential theft campaigns
+
+---
+
+## ✅ Redirect Intelligence Engine
+
+Analyzes redirect chains to identify:
+
+* URL shorteners
+* Redirect abuse
+* Domain switching
+* Multi-hop redirection attacks
+* Suspicious destination changes
+
+---
+
+## ✅ WHOIS & Domain Intelligence
+
+The platform evaluates:
+
+* Domain age
+* Registrar trustworthiness
+* Registration anomalies
+* Newly created domains
+* Domain reputation signals
+
+---
+
+## ✅ VirusTotal Integration
+
+Threat intelligence enrichment using VirusTotal:
+
+* Malicious detections
+* Suspicious detections
+* Reputation verification
+* Multi-engine validation
+
+---
+
+## ✅ Reputation Engine
+
+Risk scoring based on:
+
+* Suspicious keywords
+* Entropy analysis
+* Domain structure
+* Authentication keywords
+* TLD intelligence
+* Historical threat indicators
+
+---
+
+## ✅ Explainable Threat Analysis
+
+Instead of simply saying "malicious", the platform explains why.
+
+Example:
+
+```json
+{
+  "prediction": "malicious",
+  "risk_level": "CRITICAL",
+  "reasons": [
+    "Possible Google typosquatting domain",
+    "Contains login keyword",
+    "Brand impersonation detected",
+    "WHOIS lookup failed"
+  ]
+}
+```
+
+---
+
+## ✅ Browser-Native Threat Blocking
+
+When a threat is detected:
+
+* Website access is blocked
+* User is redirected to a warning page
+* Risk score is displayed
+* Threat explanations are shown
+* Protection occurs before interaction
+
+---
+
+# 📊 Risk Scoring System
+
+The platform calculates:
+
+* Confidence Score
+* Risk Score
+* Risk Level
+* Threat Indicators
+* Detection Reasons
+
+### Risk Levels
+
+| Score  | Level    |
+| ------ | -------- |
+| 0-34   | SAFE     |
+| 35-59  | MEDIUM   |
+| 60-79  | HIGH     |
+| 80-100 | CRITICAL |
+
+---
+
+# 🧠 Detection Pipeline
+
+```text
+Website Visit
+      │
+      ▼
+URL Collection
+      │
+      ▼
+Threat Intelligence Layer
+      │
+      ├── WHOIS Analysis
+      ├── Reputation Analysis
+      ├── Redirect Intelligence
+      ├── VirusTotal Verification
+      ├── Typosquatting Detection
+      └── Semantic Analysis
+      │
+      ▼
+Hybrid Risk Fusion Engine
+      │
+      ▼
 Risk Score Calculation
- ↓
-Prediction Response
- ↓
-Automatic Browser Blocking
+      │
+      ▼
+Threat Classification
+      │
+      ├── SAFE
+      ├── MEDIUM
+      ├── HIGH
+      └── CRITICAL
+      │
+      ▼
+Browser Protection Action
 ```
 
 ---
@@ -208,84 +244,87 @@ Automatic Browser Blocking
 
 ```text
 Browser
-   ↓
+   │
+   ▼
 Chrome Extension
-   ↓
+   │
+   ▼
 Background Scanner
-   ↓
+   │
+   ▼
 Local Cache Engine
-   ↓
+   │
+   ▼
 FastAPI Backend
-   ↓
+   │
+   ▼
 Threat Intelligence Layer
-   ↓
-Hybrid AI Engine
-   ↓
-Risk Fusion System
-   ↓
-Final Prediction
-   ↓
-Automatic Website Blocking
+   │
+   ├── WHOIS Intelligence
+   ├── Reputation Engine
+   ├── Redirect Intelligence
+   ├── VirusTotal
+   ├── Typosquatting Detection
+   └── Semantic Analysis
+   │
+   ▼
+Hybrid Risk Fusion Engine
+   │
+   ▼
+Threat Decision
+   │
+   ▼
+Browser Protection
 ```
 
 ---
 
-# 🧱 Tech Stack
+# 🧱 Technology Stack
 
-| Technology | Purpose |
-|---|---|
-| Python | Backend & AI |
-| FastAPI | Real-time inference API |
-| JavaScript | Browser extension |
-| HTML/CSS | Extension UI |
-| Random Forest | ML classification |
-| LightGBM | Boosting engine |
-| DistilBERT | Semantic phishing analysis |
-| PostgreSQL | Threat telemetry database |
-| Supabase | Cloud database infrastructure |
-| Docker | Containerized deployment |
-| SQLAlchemy | ORM/database layer |
-| Streamlit | Threat analytics dashboard |
+| Technology        | Purpose             |
+| ----------------- | ------------------- |
+| Python            | Backend             |
+| FastAPI           | Inference API       |
+| JavaScript        | Browser Extension   |
+| HTML/CSS          | Extension UI        |
+| LightGBM          | URL Intelligence    |
+| DistilBERT        | Semantic Analysis   |
+| Docker            | Deployment          |
+| SQLAlchemy        | Database ORM        |
+| SQLite/PostgreSQL | Threat Storage      |
+| VirusTotal API    | Threat Intelligence |
 
 ---
 
-# 📂 Current Project Structure
+# 📂 Project Structure
 
 ```text
 phishing-detector/
 │
-├── app/
-│   ├── auth/
-│   ├── core/
-│   ├── database/
-│   ├── middleware/
-│   ├── routes/
-│   ├── schemas/
-│   ├── services/
-│   ├── utils/
-│   └── main.py
+├── backend/
+│   ├── app/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   ├── schemas/
+│   │   └── database/
+│   │
+│   ├── models/
+│   ├── logs/
+│   └── Dockerfile
 │
 ├── chrome-extension/
 │
-├── models/
-├── logs/
-├── assets/
-│
-├── Dockerfile
-├── requirements.txt
-├── dashboard.py
-├── frontend.py
-├── render.yaml
-├── runtime.txt
 ├── README.md
+├── requirements.txt
 └── .env
 ```
 
 ---
 
-# ⚙️ Installation & Setup
+# ⚙️ Installation
 
-# 1️⃣ Clone Repository
+## Clone Repository
 
 ```bash
 git clone https://github.com/rohithvandadi07-ux/ai-phishing-detection-system.git
@@ -295,29 +334,16 @@ cd ai-phishing-detection-system
 
 ---
 
-# 2️⃣ Create Virtual Environment
+## Create Virtual Environment
 
 ```bash
 python3 -m venv venv
-```
-
-## Activate Environment
-
-### Linux/macOS
-
-```bash
 source venv/bin/activate
-```
-
-### Windows
-
-```bash
-venv\Scripts\activate
 ```
 
 ---
 
-# 3️⃣ Install Dependencies
+## Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -325,27 +351,19 @@ pip install -r requirements.txt
 
 ---
 
-# 4️⃣ Configure Environment Variables
+## Configure Environment
 
 Create `.env`
 
 ```env
-DATABASE_URL=YOUR_SUPABASE_DATABASE_URL
-
+VIRUSTOTAL_API_KEY=YOUR_API_KEY
+DATABASE_URL=YOUR_DATABASE_URL
 SECRET_KEY=YOUR_SECRET_KEY
-
-ALGORITHM=HS256
-
-ACCESS_TOKEN_EXPIRE_MINUTES=60
-
-VIRUSTOTAL_API_KEY=YOUR_VT_KEY
-
-PHISHTANK_API_KEY=YOUR_PHISHTANK_KEY
 ```
 
 ---
 
-# 5️⃣ Run Backend Locally
+## Run Backend
 
 ```bash
 uvicorn app.main:app --reload
@@ -357,7 +375,7 @@ Backend:
 http://localhost:8000
 ```
 
-Swagger Docs:
+Swagger:
 
 ```text
 http://localhost:8000/docs
@@ -365,18 +383,18 @@ http://localhost:8000/docs
 
 ---
 
-# 6️⃣ Docker Deployment
+## Docker Deployment
 
-## Build Docker Image
+Build:
 
 ```bash
-sudo docker build --no-cache -t phishing-api .
+docker build --no-cache -t phishing-api .
 ```
 
-## Run Docker Container
+Run:
 
 ```bash
-sudo docker run --env-file .env -p 8080:8080 phishing-api
+docker run --env-file .env -p 8080:8080 phishing-api
 ```
 
 Backend:
@@ -385,36 +403,19 @@ Backend:
 http://localhost:8080
 ```
 
-Swagger Docs:
-
-```text
-http://localhost:8080/docs
-```
-
 ---
 
-# 7️⃣ Load Chrome Extension
+## Load Browser Extension
 
 1. Open Chrome
-
 2. Navigate to:
 
 ```text
 chrome://extensions
 ```
 
-3. Enable:
-
-```text
-Developer Mode
-```
-
-4. Click:
-
-```text
-Load unpacked
-```
-
+3. Enable Developer Mode
+4. Click Load Unpacked
 5. Select:
 
 ```text
@@ -423,242 +424,139 @@ chrome-extension/
 
 ---
 
-# 🧪 Example URLs
+# 📡 API Endpoints
 
-# ✅ Safe URLs
+| Method | Endpoint | Description  |
+| ------ | -------- | ------------ |
+| POST   | /predict | Scan URL     |
+| GET    | /health  | Health Check |
+| GET    | /        | Home Route   |
+
+---
+
+# 🧪 Example Test URLs
+
+### Safe
 
 ```text
 https://google.com
 https://github.com
-https://amazon.com
+https://openai.com
 https://microsoft.com
 ```
 
----
-
-# ⚠️ Test Phishing URLs
+### Suspicious
 
 ```text
-http://paypal-login-secure.xyz
-http://gooogle-login.xyz
-http://paypa1-verification.top
-http://micr0soft-authentication.xyz
-http://google.security-check-login.com
+https://g00gle-login.com
+https://paypa1-security.net
+https://amaz0n-authentication.xyz
 ```
-
----
-
-# 📡 API Endpoints
-
-# Authentication
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/auth/register` | Register user |
-| POST | `/auth/login` | Login user |
-
----
-
-# Prediction APIs
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/predict` | Scan URL |
-| GET | `/health` | Health check |
-| GET | `/` | Home route |
-
----
-
-# User APIs
-
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/user/me` | Current user profile |
-| GET | `/user/history` | Scan history |
-| GET | `/user/usage` | Usage analytics |
-
----
-
-# Example Prediction Request
-
-```json
-{
-  "url": "http://paypal-login-secure.xyz"
-}
-```
-
----
-
-# 📸 Product Screenshots
-
-# 🔹 Browser Popup
-
-![Popup](assets/popup.png)
-
----
-
-# 🔹 Phishing Block Page
-
-![Blocker](assets/blocker.png)
-
----
-
-# 🔹 Threat Dashboard
-
-![Dashboard](assets/dashboard.png)
 
 ---
 
 # 📈 Current Development Status
 
-# ✅ Phase 1 — Core AI Backend
+## Phase 1 — Core Detection Platform
 
 Completed:
 
-- FastAPI backend
-- Modular architecture
-- JWT authentication
-- API key system
-- Hybrid AI engine
-- Semantic AI integration
-- Risk scoring system
-- Threat intelligence integration
+* FastAPI backend
+* Hybrid risk engine
+* LightGBM URL intelligence
+* DistilBERT semantic analysis
+* Risk scoring system
+* Threat explanation engine
 
 ---
 
-# ✅ Phase 2 — Browser Protection Layer
+## Phase 2 — Browser Protection
 
 Completed:
 
-- Chrome extension
-- Real-time scanning
-- Browser phishing blocking
-- Badge detection system
-- Popup dashboard
-- Local cache engine
+* Chrome extension
+* Real-time scanning
+* Automatic threat blocking
+* Warning page system
+* Browser badge indicators
+* Local caching
 
 ---
 
-# ✅ Phase 3 — Threat Intelligence
+## Phase 3 — Threat Intelligence
 
 Completed:
 
-- WHOIS analysis
-- Reputation engine
-- Domain intelligence
-- VirusTotal integration
-- PhishTank integration
+* WHOIS intelligence
+* Reputation engine
+* VirusTotal integration
+* Redirect intelligence
+* Typosquatting detection
+* Brand impersonation detection
 
 ---
 
-# ✅ Phase 4 — Infrastructure
+# 🚀 Roadmap
 
-Completed:
+## Phase 4 — Brand Intelligence
 
-- Docker deployment
-- Supabase integration
-- PostgreSQL telemetry
-- Logging system
-- Authentication system
-- Protected APIs
+* Advanced impersonation detection
+* Homograph attack detection
+* Brand relationship analysis
 
 ---
 
-# 🚀 Upcoming Roadmap
+## Phase 5 — Webpage Intelligence
 
-# 🔜 AI Improvements
-
-- CNN phishing detection
-- Transformer fine-tuning
-- Adaptive learning systems
-- Ensemble optimization
-- Zero-day phishing learning
+* DOM analysis
+* Login form analysis
+* Credential harvesting detection
+* Hidden element detection
 
 ---
 
-# 🔜 Browser Security Expansion
+## Phase 6 — Visual Intelligence
 
-- Fake login page detection
-- DOM analysis
-- OCR phishing analysis
-- Search-result phishing warnings
-- Screenshot threat analysis
-
----
-
-# 🔜 Threat Intelligence Expansion
-
-- SSL intelligence
-- DNS intelligence
-- Community threat feeds
-- Telemetry analytics
-- Threat sharing infrastructure
+* Screenshot analysis
+* Visual similarity detection
+* Fake login page detection
+* OCR-based phishing detection
 
 ---
 
-# 🔜 SaaS Infrastructure
+## Phase 7 — Threat Graph
 
-- Subscription plans
-- Usage analytics
-- API monetization
-- Multi-user dashboard
-- Team management
-
----
-
-# 🔜 Enterprise Platform
-
-- Organization-wide protection
-- Threat analytics portal
-- Enterprise telemetry
-- Multi-browser support
-- Centralized policy management
+* Domain relationship mapping
+* Infrastructure clustering
+* Campaign detection
+* Threat attribution
 
 ---
 
-# 🎯 Product Goal
+## Phase 8 — Platform Expansion
 
-AI Phishing Shield is being developed as a:
+* Firefox extension
+* Edge extension
+* SaaS dashboard
+* Team management
+* Enterprise APIs
 
-```text
-Production-grade AI browser cybersecurity platform
-```
+---
 
-focused on:
+# 🎯 Mission
 
-- Real-time phishing prevention
-- Browser-native cyber defense
-- Hybrid AI phishing detection
-- AI-powered threat intelligence
-- Modern web protection
+AI Phishing Shield aims to evolve beyond traditional phishing detection and become a complete phishing intelligence platform capable of identifying phishing campaigns, brand impersonation attacks, malicious infrastructure, and emerging threats before users become victims.
 
 ---
 
 # 👨‍💻 Author
 
-## Rohith V
-
-
----
-
-# ⭐ Support
-
-If you found this project useful:
-
-- Star the repository
-- Share feedback
-- Suggest improvements
-- Contribute to development
+Rohith V
 
 ---
 
 # ⚠️ Disclaimer
 
-AI Phishing Shield is intended for:
-
-- Educational purposes
-- Cybersecurity research
-- Browser security experimentation
-- Threat analysis learning
+This software is intended for cybersecurity research, phishing analysis, browser security testing, and defensive security applications.
 
 Always use responsibly and ethically.
