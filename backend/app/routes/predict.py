@@ -134,6 +134,11 @@ from app.services.threat_graph_engine import (
     classify_threat_family
 )
 
+from app.services.threat_memory_engine import (
+    remember_threat,
+    lookup_family
+)
+
 # ---------------------------------------------------
 # ROUTER
 # ---------------------------------------------------
@@ -558,6 +563,19 @@ def predict(
             url
         )
 
+        family = threat_graph_result["threat_family"]
+
+        domain = threat_graph_result["fingerprint"]["domain"]
+
+        remember_threat(
+            family,
+            domain
+        )
+
+        known_domains = lookup_family(
+            family
+        )
+
         if dna_result["dna_score"] >= 50:
 
             reasons.append(
@@ -568,6 +586,15 @@ def predict(
             )
 
         if threat_graph_result["cluster_score"] >= 60:
+
+            if len(known_domains) > 1:
+
+                reasons.append(
+
+                    f"Known phishing family with "
+                    f"{len(known_domains)} related domains"
+
+                )
 
             reasons.append(
 
@@ -884,6 +911,9 @@ def predict(
                     threat_graph_result[
                         "cluster_score"
                     ],
+
+                "known_family_domains":
+                    len(known_domains),
             }
         }
 
