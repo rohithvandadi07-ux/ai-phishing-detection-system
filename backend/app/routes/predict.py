@@ -130,6 +130,10 @@ from app.services.domain_dna_engine import (
     analyze_domain_dna
 )
 
+from app.services.threat_graph_engine import (
+    classify_threat_family
+)
+
 # ---------------------------------------------------
 # ROUTER
 # ---------------------------------------------------
@@ -550,6 +554,10 @@ def predict(
             url
         )
 
+        threat_graph_result = classify_threat_family(
+            url
+        )
+
         if dna_result["dna_score"] >= 50:
 
             reasons.append(
@@ -558,6 +566,17 @@ def predict(
                 f"{dna_result['dna_score']}"
 
             )
+
+        if threat_graph_result["cluster_score"] >= 60:
+
+            reasons.append(
+
+                f"Threat family detected: "
+                f"{threat_graph_result['threat_family']}"
+
+        )
+
+        
 
         # ---------------------------------------------------
         # REPUTATION
@@ -638,6 +657,10 @@ def predict(
         )
 
         risk_score += int(dna_result["dna_score"] * 0.25
+        )
+
+        risk_score += int(
+            threat_graph_result["cluster_score"] * 0.10
         )
 
         # -------------------------------------------
@@ -851,6 +874,16 @@ def predict(
 
                 "dna_keyword_density":
                     dna_result["keyword_density"],
+
+                "threat_family":
+                    threat_graph_result[
+                        "threat_family"
+                    ],
+
+                "cluster_score":
+                    threat_graph_result[
+                        "cluster_score"
+                    ],
             }
         }
 
