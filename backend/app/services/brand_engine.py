@@ -31,7 +31,6 @@ BRANDS = [
     "openai",
     "dropbox",
     "twitter",
-    "x",
     "telegram",
     "whatsapp",
     "adobe",

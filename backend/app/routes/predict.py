@@ -126,6 +126,10 @@ from app.services.reputation_engine import (
     analyze_reputation
 )
 
+from app.services.domain_dna_engine import (
+    analyze_domain_dna
+)
+
 # ---------------------------------------------------
 # ROUTER
 # ---------------------------------------------------
@@ -463,7 +467,12 @@ def predict(
         # WHOIS
         # ---------------------------------------------------
 
-        whois_result = analyze_domain(url)
+        whois_result = {
+            "score": 0,
+            "trust_score": 100,
+            "domain_age_days": None,
+            "indicators": []
+        }
         
         trusted_domains = [
 
@@ -530,6 +539,23 @@ def predict(
 
                 f"Brand impersonation detected: "
                 f"{brand_result['brand']}"
+
+            )
+
+        # ---------------------------------------------------
+        # DOMAIN DNA
+        # ---------------------------------------------------
+
+        dna_result = analyze_domain_dna(
+            url
+        )
+
+        if dna_result["dna_score"] >= 50:
+
+            reasons.append(
+
+                f"High-risk domain DNA score: "
+                f"{dna_result['dna_score']}"
 
             )
 
@@ -609,6 +635,9 @@ def predict(
 
         risk_score += int(
             whois_result["score"] * 0.25
+        )
+
+        risk_score += int(dna_result["dna_score"] * 0.25
         )
 
         # -------------------------------------------
@@ -810,6 +839,18 @@ def predict(
 
                 "brand_confidence":
                     brand_result["confidence"],
+
+                "dna_score":
+                    dna_result["dna_score"],
+
+                "dna_entropy":
+                    dna_result["entropy"],
+
+                "dna_digit_ratio":
+                    dna_result["digit_ratio"],
+
+                "dna_keyword_density":
+                    dna_result["keyword_density"],
             }
         }
 

@@ -15,7 +15,9 @@ urls = [
 
     "https://micr0soft-login.com",
 
-    "https://openai.com"
+    "https://openai.com",
+
+    "http://free-bitcoin-login-secure.xyz"
 
 ]
 

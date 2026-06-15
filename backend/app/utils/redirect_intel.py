@@ -42,7 +42,7 @@ def analyze_redirects(url):
 
             allow_redirects=True,
 
-            timeout=10
+            timeout=3
         )
 
         history = response.history
