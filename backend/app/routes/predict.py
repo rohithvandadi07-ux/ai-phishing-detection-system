@@ -139,6 +139,10 @@ from app.services.threat_memory_engine import (
     lookup_family
 )
 
+from app.services.campaign_intelligence import (
+    analyze_campaign
+)
+
 # ---------------------------------------------------
 # ROUTER
 # ---------------------------------------------------
@@ -563,6 +567,10 @@ def predict(
             url
         )
 
+        campaign_result = analyze_campaign(
+            threat_graph_result["threat_family"]
+        )
+
         family = threat_graph_result["threat_family"]
 
         domain = threat_graph_result["fingerprint"]["domain"]
@@ -586,6 +594,15 @@ def predict(
             )
 
         if threat_graph_result["cluster_score"] >= 60:
+
+            if campaign_result["known_domains"] >= 2:
+
+                reasons.append(
+
+                    f"Known phishing campaign: "
+                    f"{campaign_result['campaign']}"
+
+                )
 
             if len(known_domains) > 1:
 
@@ -689,6 +706,10 @@ def predict(
         risk_score += int(
             threat_graph_result["cluster_score"] * 0.10
         )
+
+        if campaign_result["known_domains"] >= 2:
+
+            risk_score += 10
 
         # -------------------------------------------
         # TYPOSQUATTING BOOST
@@ -914,6 +935,15 @@ def predict(
 
                 "known_family_domains":
                     len(known_domains),
+
+                "campaign":
+                    campaign_result["campaign"],
+
+                "known_campaign_domains":
+                    campaign_result["known_domains"],
+
+                "campaign_level":
+                    campaign_result["campaign_level"],
             }
         }
 
