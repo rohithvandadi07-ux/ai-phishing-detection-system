@@ -25,7 +25,8 @@ def check_virustotal(url):
 
         response = requests.get(
             f"https://www.virustotal.com/api/v3/urls/{url_id}",
-            headers=headers
+            headers=headers,
+            timeout=3
         )
 
         data = response.json()

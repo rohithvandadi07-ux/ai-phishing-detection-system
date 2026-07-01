@@ -104,7 +104,7 @@ def get_virustotal_report(url):
 
             headers=HEADERS,
 
-            timeout=15
+            timeout=3   
         )
 
         # ---------------------------------------------------
@@ -203,7 +203,7 @@ def get_virustotal_report(url):
                     "url": url
                 },
 
-                timeout=15
+                timeout=3
             )
 
             if submit_response.status_code in [

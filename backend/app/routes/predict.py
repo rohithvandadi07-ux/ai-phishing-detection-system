@@ -114,12 +114,37 @@ from app.utils.redirect_intel import (
     analyze_redirects
 )
 
+from app.services.brand_engine import (
+    detect_brand_impersonation
+)
+
 # ---------------------------------------------------
 # REPUTATION ENGINE
 # ---------------------------------------------------
 
 from app.services.reputation_engine import (
     analyze_reputation
+)
+
+from app.services.domain_dna_engine import (
+    analyze_domain_dna
+)
+
+from app.services.threat_graph_engine import (
+    classify_threat_family
+)
+
+from app.services.threat_memory_engine import (
+    remember_threat,
+    lookup_family
+)
+
+from app.services.campaign_intelligence import (
+    analyze_campaign
+)
+
+from app.services.html_intelligence import (
+    analyze_html
 )
 
 # ---------------------------------------------------
@@ -459,7 +484,12 @@ def predict(
         # WHOIS
         # ---------------------------------------------------
 
-        whois_result = analyze_domain(url)
+        whois_result = {
+            "score": 0,
+            "trust_score": 100,
+            "domain_age_days": None,
+            "indicators": []
+        }
         
         trusted_domains = [
 
@@ -511,6 +541,111 @@ def predict(
         reasons.extend(
             redirect_result["indicators"]
         )
+
+        # ---------------------------------------------------
+        # BRAND INTELLIGENCE
+        # ---------------------------------------------------
+
+        brand_result = detect_brand_impersonation(
+            url
+        )
+
+        if brand_result["detected"]:
+
+            reasons.append(
+
+                f"Brand impersonation detected: "
+                f"{brand_result['brand']}"
+
+            )
+
+        # ---------------------------------------------------
+        # DOMAIN DNA
+        # ---------------------------------------------------
+
+        dna_result = analyze_domain_dna(
+            url
+        )
+
+        # ---------------------------------------------------
+        # HTML INTELLIGENCE
+        # ---------------------------------------------------
+
+        html_result = analyze_html(
+            url
+        )
+
+        reasons.extend(
+            html_result["indicators"]
+        )
+
+        if html_result["html_score"] >= 40:
+
+            reasons.append(
+
+                f"High-risk HTML score: "
+                f"{html_result['html_score']}"
+
+            )
+
+        threat_graph_result = classify_threat_family(
+            url
+        )
+
+        campaign_result = analyze_campaign(
+            threat_graph_result["threat_family"]
+        )
+
+        family = threat_graph_result["threat_family"]
+
+        domain = threat_graph_result["fingerprint"]["domain"]
+
+        remember_threat(
+            family,
+            domain
+        )
+
+        known_domains = lookup_family(
+            family
+        )
+
+        if dna_result["dna_score"] >= 50:
+
+            reasons.append(
+
+                f"High-risk domain DNA score: "
+                f"{dna_result['dna_score']}"
+
+            )
+
+        if threat_graph_result["cluster_score"] >= 60:
+
+            if campaign_result["known_domains"] >= 2:
+
+                reasons.append(
+
+                    f"Known phishing campaign: "
+                    f"{campaign_result['campaign']}"
+
+                )
+
+            if len(known_domains) > 1:
+
+                reasons.append(
+
+                    f"Known phishing family with "
+                    f"{len(known_domains)} related domains"
+
+                )
+
+            reasons.append(
+
+                f"Threat family detected: "
+                f"{threat_graph_result['threat_family']}"
+
+        )
+
+        
 
         # ---------------------------------------------------
         # REPUTATION
@@ -590,6 +725,21 @@ def predict(
             whois_result["score"] * 0.25
         )
 
+        risk_score += int(dna_result["dna_score"] * 0.25
+        )
+
+        risk_score += int(
+            threat_graph_result["cluster_score"] * 0.10
+        )
+
+        risk_score += int(
+            html_result["html_score"] * 0.10
+        )
+
+        if campaign_result["known_domains"] >= 2:
+
+            risk_score += 10
+
         # -------------------------------------------
         # TYPOSQUATTING BOOST
         # -------------------------------------------
@@ -605,12 +755,9 @@ def predict(
         # BRAND IMPERSONATION BOOST
         # -------------------------------------------
 
-        if any(
-            "impersonation" in r.lower()
-            for r in reasons
-        ):
+        if brand_result["detected"]:
 
-            risk_score += 15
+            risk_score += 20
 
         # -------------------------------------------
         # WHOIS FAILURE BOOST
@@ -786,6 +933,62 @@ def predict(
 
                 "final_url":
                     redirect_result["final_url"],
+
+                "impersonated_brand":
+                    brand_result["brand"],
+
+                "brand_confidence":
+                    brand_result["confidence"],
+
+                "dna_score":
+                    dna_result["dna_score"],
+
+                "dna_entropy":
+                    dna_result["entropy"],
+
+                "dna_digit_ratio":
+                    dna_result["digit_ratio"],
+
+                "dna_keyword_density":
+                    dna_result["keyword_density"],
+
+                "threat_family":
+                    threat_graph_result[
+                        "threat_family"
+                    ],
+
+                "cluster_score":
+                    threat_graph_result[
+                        "cluster_score"
+                    ],
+
+                "known_family_domains":
+                    len(known_domains),
+
+                "campaign":
+                    campaign_result["campaign"],
+
+                "known_campaign_domains":
+                    campaign_result["known_domains"],
+
+                "campaign_level":
+                    campaign_result["campaign_level"],
+
+                "html_score":
+                    html_result.get("html_score", 0),
+
+                "html_brand":
+                    html_result.get("brand"),
+
+                "html_password_fields":
+                    html_result.get("password_fields", 0),
+
+                "html_email_fields":
+                    html_result.get("email_fields", 0),
+
+                "html_login_forms":
+                    html_result.get("login_forms", 0),
+                
             }
         }
 

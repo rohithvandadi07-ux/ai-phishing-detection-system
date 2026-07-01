@@ -560,3 +560,4 @@ Rohith V
 This software is intended for cybersecurity research, phishing analysis, browser security testing, and defensive security applications.
 
 Always use responsibly and ethically.
+
