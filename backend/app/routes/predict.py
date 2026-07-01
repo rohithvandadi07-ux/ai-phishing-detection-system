@@ -143,6 +143,10 @@ from app.services.campaign_intelligence import (
     analyze_campaign
 )
 
+from app.services.html_intelligence import (
+    analyze_html
+)
+
 # ---------------------------------------------------
 # ROUTER
 # ---------------------------------------------------
@@ -563,6 +567,27 @@ def predict(
             url
         )
 
+        # ---------------------------------------------------
+        # HTML INTELLIGENCE
+        # ---------------------------------------------------
+
+        html_result = analyze_html(
+            url
+        )
+
+        reasons.extend(
+            html_result["indicators"]
+        )
+
+        if html_result["html_score"] >= 40:
+
+            reasons.append(
+
+                f"High-risk HTML score: "
+                f"{html_result['html_score']}"
+
+            )
+
         threat_graph_result = classify_threat_family(
             url
         )
@@ -705,6 +730,10 @@ def predict(
 
         risk_score += int(
             threat_graph_result["cluster_score"] * 0.10
+        )
+
+        risk_score += int(
+            html_result["html_score"] * 0.10
         )
 
         if campaign_result["known_domains"] >= 2:
@@ -944,6 +973,22 @@ def predict(
 
                 "campaign_level":
                     campaign_result["campaign_level"],
+
+                "html_score":
+                    html_result.get("html_score", 0),
+
+                "html_brand":
+                    html_result.get("brand"),
+
+                "html_password_fields":
+                    html_result.get("password_fields", 0),
+
+                "html_email_fields":
+                    html_result.get("email_fields", 0),
+
+                "html_login_forms":
+                    html_result.get("login_forms", 0),
+                
             }
         }
 
