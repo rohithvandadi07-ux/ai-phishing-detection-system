@@ -147,6 +147,12 @@ from app.services.html_intelligence import (
     analyze_html
 )
 
+from app.services.browser_intelligence import (
+    analyze_browser
+)
+
+
+
 # ---------------------------------------------------
 # ROUTER
 # ---------------------------------------------------
@@ -588,6 +594,28 @@ def predict(
 
             )
 
+        # ---------------------------------------------------
+        # BROWSER INTELLIGENCE
+        # ---------------------------------------------------
+
+        browser_result = analyze_browser(
+            url
+        )
+
+        if browser_result["success"]:
+
+            if browser_result["final_url"] != url:
+
+                reasons.append(
+                    "Browser redirected to another URL"
+                )
+
+        else:
+
+            reasons.append(
+                "Browser analysis failed"
+            )
+
         threat_graph_result = classify_threat_family(
             url
         )
@@ -988,6 +1016,21 @@ def predict(
 
                 "html_login_forms":
                     html_result.get("login_forms", 0),
+
+                "browser_status":
+                    browser_result.get("status"),
+
+                "browser_title":
+                    browser_result.get("title"),
+
+                "browser_final_url":
+                    browser_result.get("final_url"),
+
+                "browser_load_time":
+                    browser_result.get("load_time"),
+
+                "browser_screenshot":
+                    browser_result.get("screenshot"),
                 
             }
         }

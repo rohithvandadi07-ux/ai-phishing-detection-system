@@ -158,7 +158,7 @@ class ScanHistory(Base):
     user_id = Column(
         Integer,
         ForeignKey("users.id"),
-        nullable=False,
+        nullable=True,
         index=True
     )
 

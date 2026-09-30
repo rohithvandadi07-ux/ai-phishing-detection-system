@@ -49,7 +49,7 @@ def analyze_domain(url):
 
     score = 0
 
-    trust_score = 100
+    trust_score = 50
 
     registrar_name = "Unknown"
 
@@ -286,9 +286,9 @@ def analyze_domain(url):
             "WHOIS lookup failed"
         )
 
-        score += 5
+        score += 15
 
-        trust_score -= 5
+        trust_score = 0
 
     # ---------------------------------------------------
     # FINAL RESPONSE
