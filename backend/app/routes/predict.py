@@ -7,6 +7,10 @@ import re
 import math
 
 from urllib.parse import urlparse
+from app.utils.url_security import (
+    validate_public_url,
+    normalize_url,
+)   
 
 from sqlalchemy.orm import Session
 
@@ -150,6 +154,7 @@ from app.services.html_intelligence import (
 from app.services.browser_intelligence import (
     analyze_browser
 )
+
 
 
 
@@ -368,6 +373,19 @@ def predict(
     start_time = time.time()
 
     url = body.url.strip()
+
+    is_valid, validation_error = validate_public_url(url)
+
+    if not is_valid:
+        return {
+            "prediction": PREDICTION_ERROR,
+            "confidence": 0.0,
+            "risk_score": 0,
+            "risk_level": RISK_HIGH,
+            "inference_time": 0.0,
+            "reasons": [validation_error],
+            "ai_engine": {}
+        }
 
     try:
 
@@ -604,7 +622,7 @@ def predict(
 
         if browser_result["success"]:
 
-            if browser_result["final_url"] != url:
+            if normalize_url(browser_result["final_url"]) != normalize_url(url):
 
                 reasons.append(
                     "Browser redirected to another URL"

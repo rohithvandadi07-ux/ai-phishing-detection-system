@@ -1,0 +1,39 @@
+{
+    "model_name": "XGBoost Classifier",
+    "model_type": "XGBClassifier",
+    "threshold": 0.07271960377693176,
+    "feature_count": 27,
+    "feature_names": [
+        "url_length",
+        "num_dots",
+        "num_hyphens",
+        "num_digits",
+        "num_special_chars",
+        "num_subdomains",
+        "has_https",
+        "has_ip",
+        "has_at_symbol",
+        "hostname_length",
+        "domain_length",
+        "path_length",
+        "query_length",
+        "query_parameters",
+        "subdirectory_count",
+        "hostname_hyphens",
+        "digit_ratio",
+        "special_char_ratio",
+        "url_entropy",
+        "has_port",
+        "has_punycode",
+        "has_encoded_chars",
+        "has_fragment",
+        "suspicious_keyword_count",
+        "is_shortened_url",
+        "has_malformed_url",
+        "missing_registered_domain"
+    ],
+    "classes": [
+        0,
+        1
+    ]
+}
